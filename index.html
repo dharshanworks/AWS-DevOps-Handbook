@@ -1,0 +1,1607 @@
+<!-- Based on Build a Modern Landing Page Website by Kevin Powell for Traversy Media (2020)
+see: https://www.youtube.com/watch?v=X1dz0xRbSJc -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060912;
+  --bg2: #0c1220;
+  --bg3: #111827;
+  --surface: rgba(255,255,255,0.04);
+  --surface2: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --orange: #FF9900;
+  --orange2: #ffb347;
+  --blue: #4FC3F7;
+  --blue2: #81D4FA;
+  --green: #00E676;
+  --purple: #CE93D8;
+  --red: #FF5252;
+  --yellow: #FFD740;
+  --text: #F1F5F9;
+  --text2: #94A3B8;
+  --text3: #64748B;
+  --glow-orange: 0 0 30px rgba(255,153,0,0.3);
+  --glow-blue: 0 0 30px rgba(79,195,247,0.3);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Syne',sans-serif;
+  overflow-x:hidden;
+  cursor:none;
+}
+/* Custom cursor */
+#cursor{position:fixed;width:10px;height:10px;background:var(--orange);border-radius:50%;pointer-events:none;z-index:9999;transition:transform 0.1s;mix-blend-mode:screen}
+#cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(255,153,0,0.5);border-radius:50%;pointer-events:none;z-index:9998;transition:transform 0.15s,width 0.2s,height 0.2s}
+/* Canvas */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--orange);border-radius:2px}
+/* Progress */
+#progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--orange),var(--blue));z-index:1001;transition:width 0.1s}
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  padding:0 40px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(6,9,18,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  transition:all 0.3s;
+}
+nav.scrolled{background:rgba(6,9,18,0.97);box-shadow:0 4px 30px rgba(0,0,0,0.5)}
+.nav-logo{
+  font-size:1.15rem;font-weight:800;letter-spacing:-0.5px;
+  background:linear-gradient(90deg,var(--orange),var(--blue2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.nav-links{display:flex;gap:8px;align-items:center}
+.nav-links a{
+  color:var(--text2);font-size:0.78rem;font-weight:600;letter-spacing:0.5px;
+  text-decoration:none;padding:6px 14px;border-radius:6px;
+  transition:all 0.2s;text-transform:uppercase;
+}
+.nav-links a:hover{color:var(--orange);background:rgba(255,153,0,0.08)}
+.nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px}
+.nav-hamburger span{width:22px;height:2px;background:var(--text2);border-radius:2px;transition:all 0.3s}
+.mobile-menu{
+  display:none;position:fixed;top:64px;left:0;right:0;z-index:999;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:16px 24px;flex-direction:column;gap:4px;
+}
+.mobile-menu a{color:var(--text2);text-decoration:none;padding:10px 0;font-weight:600;font-size:0.85rem;border-bottom:1px solid var(--border)}
+.mobile-menu a:hover{color:var(--orange)}
+/* Sections */
+section{position:relative;z-index:1;padding:80px 40px}
+.section-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.7rem;
+  color:var(--orange);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:12px;display:flex;align-items:center;gap:8px;
+}
+.section-label::before{content:'';width:20px;height:1px;background:var(--orange)}
+.section-title{font-size:2.4rem;font-weight:800;line-height:1.15;margin-bottom:16px}
+.section-title span{background:linear-gradient(90deg,var(--orange),var(--blue2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.section-desc{color:var(--text2);font-size:1rem;max-width:600px;line-height:1.7}
+/* ======= HERO ======= */
+#hero{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:80px 24px;flex-direction:column;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,153,0,0.1);border:1px solid rgba(255,153,0,0.25);
+  padding:6px 16px;border-radius:100px;margin-bottom:28px;
+  font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--orange);letter-spacing:1.5px;
+}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero-title{
+  font-size:clamp(2.6rem,7vw,5.5rem);font-weight:800;line-height:1.08;
+  margin-bottom:24px;letter-spacing:-2px;
+}
+.hero-title .line1{display:block}
+.hero-title .line2{
+  display:block;
+  background:linear-gradient(90deg,var(--orange),var(--orange2),var(--blue2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-sub{
+  color:var(--text2);font-size:1.05rem;line-height:1.7;
+  max-width:560px;margin:0 auto 40px;
+}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 28px;border-radius:8px;font-weight:700;
+  font-size:0.85rem;cursor:pointer;letter-spacing:0.5px;
+  text-decoration:none;transition:all 0.25s;border:none;font-family:'Syne',sans-serif;
+  position:relative;overflow:hidden;
+}
+.btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:rgba(255,255,255,0.1);transition:left 0.3s;transform:skewX(-15deg)}
+.btn:hover::before{left:100%}
+.btn-primary{background:linear-gradient(135deg,var(--orange),#ff6600);color:#000;box-shadow:0 4px 20px rgba(255,153,0,0.35)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,153,0,0.5)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}
+.btn-secondary:hover{background:rgba(255,255,255,0.1);transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--blue);border:1px solid var(--blue);box-shadow:0 0 15px rgba(79,195,247,0.1)}
+.btn-outline:hover{background:rgba(79,195,247,0.1);transform:translateY(-2px)}
+.hero-stats{
+  display:flex;gap:40px;margin-top:56px;justify-content:center;flex-wrap:wrap;
+}
+.hero-stat{text-align:center}
+.hero-stat .num{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,var(--orange),var(--blue2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-stat .lbl{font-size:0.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-top:2px}
+/* Floating chips */
+.hero-chips{position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;overflow:hidden}
+.chip{
+  position:absolute;padding:6px 14px;border-radius:100px;
+  font-size:0.7rem;font-family:'JetBrains Mono',monospace;font-weight:500;
+  border:1px solid;animation:float-chip 8s ease-in-out infinite;
+  white-space:nowrap;
+}
+.chip.orange{color:var(--orange);border-color:rgba(255,153,0,0.3);background:rgba(255,153,0,0.07)}
+.chip.blue{color:var(--blue);border-color:rgba(79,195,247,0.3);background:rgba(79,195,247,0.07)}
+.chip.green{color:var(--green);border-color:rgba(0,230,118,0.3);background:rgba(0,230,118,0.07)}
+@keyframes float-chip{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+/* ======= SERVICE EXPLORER ======= */
+#services{background:var(--bg2)}
+.services-toolbar{
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:32px 0 24px;
+}
+.search-box{
+  flex:1;min-width:200px;max-width:340px;
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:10px 16px;
+}
+.search-box input{
+  background:none;border:none;outline:none;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:0.88rem;flex:1;
+}
+.search-box input::placeholder{color:var(--text3)}
+.filter-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.filter-tab{
+  padding:7px 16px;border-radius:6px;font-size:0.75rem;font-weight:700;
+  cursor:pointer;border:1px solid var(--border);background:var(--surface);
+  color:var(--text2);transition:all 0.2s;letter-spacing:0.5px;
+}
+.filter-tab:hover{border-color:var(--orange);color:var(--orange)}
+.filter-tab.active{background:rgba(255,153,0,0.15);border-color:var(--orange);color:var(--orange)}
+.services-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:16px;margin-top:8px;
+}
+.service-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:20px;cursor:pointer;
+  transition:all 0.25s;position:relative;overflow:hidden;
+}
+.service-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--orange),var(--blue));
+  transform:scaleX(0);transform-origin:left;transition:transform 0.3s;
+}
+.service-card:hover{border-color:rgba(255,153,0,0.3);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.4)}
+.service-card:hover::before{transform:scaleX(1)}
+.service-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.service-icon{
+  width:40px;height:40px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:1.1rem;flex-shrink:0;
+}
+.service-name{font-size:0.95rem;font-weight:700}
+.service-category-tag{
+  font-size:0.62rem;font-family:'JetBrains Mono',monospace;letter-spacing:1px;
+  padding:3px 8px;border-radius:4px;font-weight:500;
+}
+.service-purpose{color:var(--text2);font-size:0.82rem;line-height:1.5;margin-bottom:14px}
+.service-expand-btn{
+  display:flex;align-items:center;gap:6px;color:var(--orange);
+  font-size:0.75rem;font-weight:700;background:none;border:none;
+  cursor:pointer;font-family:'Syne',sans-serif;padding:0;
+}
+.service-details{
+  display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px;
+}
+.service-details.open{display:block;animation:slideDown 0.3s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.detail-item{background:var(--surface2);padding:10px 12px;border-radius:8px}
+.detail-item .dt{font-size:0.65rem;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:4px}
+.detail-item .dd{font-size:0.8rem;color:var(--text);line-height:1.5}
+.detail-full{background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:10px}
+.detail-full .dt{font-size:0.65rem;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:4px}
+.detail-full .dd{font-size:0.8rem;color:var(--text);line-height:1.5}
+.tag-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.tag{padding:3px 8px;border-radius:4px;font-size:0.68rem;font-family:'JetBrains Mono',monospace}
+.tag.orange{background:rgba(255,153,0,0.1);color:var(--orange);border:1px solid rgba(255,153,0,0.2)}
+.tag.blue{background:rgba(79,195,247,0.1);color:var(--blue);border:1px solid rgba(79,195,247,0.2)}
+.tag.red{background:rgba(255,82,82,0.1);color:var(--red);border:1px solid rgba(255,82,82,0.2)}
+.tag.green{background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
+.interview-tip{
+  margin-top:12px;background:linear-gradient(135deg,rgba(255,153,0,0.08),rgba(79,195,247,0.08));
+  border:1px solid rgba(255,153,0,0.2);border-radius:8px;padding:12px;
+}
+.interview-tip .tip-label{font-size:0.65rem;color:var(--orange);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:5px}
+.interview-tip p{font-size:0.8rem;color:var(--text2);line-height:1.5}
+/* ======= USE CASE MATCHER ======= */
+#usecase{background:var(--bg)}
+.usecase-btns{display:flex;flex-wrap:wrap;gap:10px;margin:28px 0}
+.uc-btn{
+  padding:10px 22px;border-radius:8px;font-weight:700;font-size:0.82rem;
+  cursor:pointer;border:1px solid var(--border2);background:var(--surface);
+  color:var(--text2);transition:all 0.25s;font-family:'Syne',sans-serif;
+}
+.uc-btn:hover,.uc-btn.active{
+  background:rgba(255,153,0,0.12);border-color:var(--orange);
+  color:var(--orange);transform:translateY(-2px);
+}
+.usecase-result{
+  display:none;background:var(--surface);border:1px solid rgba(255,153,0,0.2);
+  border-radius:16px;padding:28px;margin-top:8px;
+  animation:fadeIn 0.4s ease;
+}
+.usecase-result.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.uc-title{font-size:1.2rem;font-weight:800;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.uc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.uc-item{background:var(--surface2);border-radius:10px;padding:16px;border:1px solid var(--border)}
+.uc-item h4{font-size:0.85rem;font-weight:700;margin-bottom:6px;color:var(--orange)}
+.uc-item p{font-size:0.78rem;color:var(--text2);line-height:1.6}
+.uc-flow{
+  margin-top:20px;padding:16px;background:var(--surface2);border-radius:10px;
+  border:1px solid var(--border);
+}
+.uc-flow h4{font-size:0.82rem;color:var(--blue);margin-bottom:12px;font-family:'JetBrains Mono',monospace;letter-spacing:1px}
+.uc-flow-steps{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.uc-step{
+  padding:5px 12px;border-radius:6px;font-size:0.72rem;font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+  background:rgba(79,195,247,0.1);color:var(--blue);border:1px solid rgba(79,195,247,0.2);
+}
+.uc-arrow{color:var(--text3);font-size:0.9rem}
+.uc-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.uc-badge{padding:4px 12px;border-radius:100px;font-size:0.7rem;font-weight:700;font-family:'JetBrains Mono',monospace}
+.uc-badge.cost-low{background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
+.uc-badge.cost-med{background:rgba(255,215,64,0.1);color:var(--yellow);border:1px solid rgba(255,215,64,0.2)}
+.uc-badge.cost-high{background:rgba(255,82,82,0.1);color:var(--red);border:1px solid rgba(255,82,82,0.2)}
+/* ======= ROADMAP ======= */
+#roadmap{background:var(--bg2)}
+.roadmap-timeline{position:relative;margin-top:40px;padding-left:0}
+.roadmap-phase{
+  display:grid;grid-template-columns:60px 1fr;gap:0 24px;
+  margin-bottom:8px;
+}
+.phase-spine{display:flex;flex-direction:column;align-items:center;padding-top:4px}
+.phase-dot{
+  width:44px;height:44px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:0.75rem;font-weight:800;
+  border:2px solid;flex-shrink:0;transition:all 0.3s;
+  font-family:'JetBrains Mono',monospace;
+}
+.phase-line{width:2px;flex:1;min-height:30px;margin:6px 0}
+.phase-content{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:20px;margin-bottom:16px;
+  cursor:pointer;transition:all 0.25s;
+}
+.phase-content:hover{transform:translateX(4px);border-color:rgba(255,153,0,0.25)}
+.phase-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.phase-name{font-size:1rem;font-weight:800}
+.phase-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.phase-duration{font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--text3);
+  background:var(--surface2);padding:3px 8px;border-radius:4px}
+.phase-diff{font-size:0.68rem;font-family:'JetBrains Mono',monospace;padding:3px 8px;border-radius:4px}
+.phase-diff.easy{color:var(--green);background:rgba(0,230,118,0.1)}
+.phase-diff.medium{color:var(--yellow);background:rgba(255,215,64,0.1)}
+.phase-diff.hard{color:var(--red);background:rgba(255,82,82,0.1)}
+.phase-toggle{color:var(--text3);font-size:1rem;transition:transform 0.3s}
+.phase-toggle.open{transform:rotate(180deg)}
+.phase-body{
+  display:none;margin-top:16px;border-top:1px solid var(--border);
+  padding-top:16px;grid-template-columns:1fr 1fr 1fr;gap:12px;
+}
+.phase-body.open{display:grid;animation:slideDown 0.3s ease}
+.phase-section{background:var(--surface2);padding:12px;border-radius:8px}
+.phase-section h4{font-size:0.68rem;color:var(--orange);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:8px}
+.phase-section ul{list-style:none;display:flex;flex-direction:column;gap:4px}
+.phase-section ul li{font-size:0.78rem;color:var(--text2);display:flex;align-items:center;gap:6px;line-height:1.4}
+.phase-section ul li::before{content:'▸';color:var(--orange);font-size:0.6rem;flex-shrink:0}
+/* ======= ARCHITECTURE ======= */
+#architecture{background:var(--bg)}
+.arch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;margin-top:32px}
+.arch-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:24px;transition:all 0.3s;
+}
+.arch-card:hover{border-color:rgba(79,195,247,0.3);box-shadow:0 16px 50px rgba(0,0,0,0.4)}
+.arch-title{font-size:0.9rem;font-weight:800;margin-bottom:20px;color:var(--blue2)}
+.arch-flow{display:flex;flex-direction:column;align-items:center;gap:0}
+.arch-node{
+  background:var(--surface2);border-radius:10px;padding:10px 20px;
+  text-align:center;width:100%;border:1px solid var(--border);
+  position:relative;transition:all 0.2s;
+}
+.arch-node:hover{border-color:var(--orange);background:rgba(255,153,0,0.05)}
+.arch-node .node-name{font-size:0.85rem;font-weight:700;color:var(--text)}
+.arch-node .node-desc{font-size:0.7rem;color:var(--text3);margin-top:2px}
+.arch-node .node-badge{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  font-size:0.58rem;padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;
+}
+.arch-arrow{
+  width:2px;height:24px;background:linear-gradient(to bottom,var(--orange),var(--blue));
+  position:relative;margin:0 auto;
+}
+.arch-arrow::after{
+  content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);
+  width:0;height:0;border-left:5px solid transparent;
+  border-right:5px solid transparent;border-top:7px solid var(--blue);
+}
+/* ======= PIPELINE ======= */
+#pipeline{background:var(--bg2)}
+.pipeline-container{margin-top:32px;position:relative}
+.pipeline-track{
+  display:flex;flex-direction:column;gap:0;
+  max-width:500px;margin:0 auto;
+}
+.pipeline-stage{
+  display:flex;align-items:stretch;position:relative;
+}
+.stage-connector{
+  display:flex;flex-direction:column;align-items:center;
+  width:60px;flex-shrink:0;
+}
+.stage-dot{
+  width:48px;height:48px;border-radius:50%;border:2px solid;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;flex-shrink:0;animation:stagePulse 3s ease infinite;
+  transition:all 0.3s;cursor:pointer;
+}
+@keyframes stagePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,153,0,0.3)}50%{box-shadow:0 0 0 8px rgba(255,153,0,0)}}
+.stage-line-v{width:2px;flex:1;min-height:20px}
+.stage-info{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:14px 18px;margin:4px 0;flex:1;
+  transition:all 0.3s;cursor:pointer;
+}
+.stage-info:hover{border-color:rgba(255,153,0,0.3);transform:translateX(4px)}
+.stage-name{font-size:0.9rem;font-weight:800;margin-bottom:3px}
+.stage-desc{font-size:0.75rem;color:var(--text2);line-height:1.5}
+.stage-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+/* ======= INTERVIEW ======= */
+#interview{background:var(--bg)}
+.interview-tabs{display:flex;gap:8px;margin:24px 0;flex-wrap:wrap}
+.itab{
+  padding:8px 20px;border-radius:8px;font-weight:700;font-size:0.8rem;
+  cursor:pointer;border:1px solid var(--border);background:var(--surface);
+  color:var(--text2);transition:all 0.2s;font-family:'Syne',sans-serif;
+}
+.itab.active{background:rgba(79,195,247,0.12);border-color:var(--blue);color:var(--blue)}
+.interview-panel{display:none}
+.interview-panel.active{display:block;animation:fadeIn 0.3s ease}
+.qa-list{display:flex;flex-direction:column;gap:12px;max-width:860px}
+.qa-item{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+}
+.qa-q{
+  padding:14px 18px;font-size:0.88rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:background 0.2s;
+}
+.qa-q:hover{background:var(--surface2)}
+.qa-q span{flex:1;padding-right:12px}
+.qa-q .q-num{
+  font-size:0.65rem;font-family:'JetBrains Mono',monospace;color:var(--orange);
+  background:rgba(255,153,0,0.1);padding:3px 7px;border-radius:4px;margin-right:12px;flex-shrink:0;
+}
+.qa-q .q-toggle{color:var(--text3);transition:transform 0.3s;font-size:0.9rem;flex-shrink:0}
+.qa-q.open .q-toggle{transform:rotate(180deg)}
+.qa-a{
+  display:none;padding:0 18px 14px;font-size:0.8rem;color:var(--text2);
+  line-height:1.7;border-top:1px solid var(--border);padding-top:12px;
+}
+.qa-a.open{display:block;animation:slideDown 0.3s ease}
+.tip-box{
+  margin-top:28px;background:linear-gradient(135deg,rgba(0,230,118,0.06),rgba(79,195,247,0.06));
+  border:1px solid rgba(0,230,118,0.2);border-radius:12px;padding:20px;max-width:860px;
+}
+.tip-box h3{font-size:0.95rem;font-weight:800;color:var(--green);margin-bottom:12px}
+.tip-box ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tip-box ul li{
+  font-size:0.8rem;color:var(--text2);display:flex;align-items:flex-start;gap:8px;
+}
+.tip-box ul li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
+/* ======= FOOTER ======= */
+footer{
+  background:var(--bg2);border-top:1px solid var(--border);
+  padding:60px 40px 30px;
+}
+.footer-grid{
+  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;
+  max-width:1200px;margin:0 auto 40px;
+}
+.footer-brand .name{font-size:1.3rem;font-weight:800;background:linear-gradient(90deg,var(--orange),var(--blue2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px}
+.footer-brand p{font-size:0.82rem;color:var(--text3);line-height:1.7}
+.footer-col h4{font-size:0.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1.5px;margin-bottom:14px}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.footer-col ul li{font-size:0.82rem;color:var(--text2);cursor:pointer;transition:color 0.2s}
+.footer-col ul li:hover{color:var(--orange)}
+.footer-bottom{
+  border-top:1px solid var(--border);padding-top:20px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;max-width:1200px;margin:0 auto;
+}
+.footer-bottom p{font-size:0.75rem;color:var(--text3)}
+.footer-bottom span{color:var(--orange)}
+/* Responsive */
+@media(max-width:900px){
+  .footer-grid{grid-template-columns:1fr 1fr}
+  .phase-body{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  section{padding:60px 20px}
+  nav{padding:0 20px}
+  .nav-links{display:none}
+  .nav-hamburger{display:flex}
+  .hero-title{letter-spacing:-1px}
+  .footer-grid{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr}
+  .phase-body{grid-template-columns:1fr}
+  .tip-box ul{grid-template-columns:1fr}
+  .roadmap-phase{grid-template-columns:48px 1fr}
+  .pipeline-track{max-width:100%}
+  #cursor,#cursor-ring{display:none}
+  body{cursor:auto}
+}
+@media(max-width:480px){
+  .section-title{font-size:1.8rem}
+  .services-grid{grid-template-columns:1fr}
+  .arch-grid{grid-template-columns:1fr}
+  .uc-grid{grid-template-columns:1fr}
+  .hero-stats{gap:24px}
+}
+/* Category colors */
+.cat-compute{--cat-color:#FF9900}
+.cat-storage{--cat-color:#4FC3F7}
+.cat-database{--cat-color:#CE93D8}
+.cat-network{--cat-color:#00E676}
+.cat-security{--cat-color:#FF5252}
+.cat-monitoring{--cat-color:#FFD740}
+.cat-devops{--cat-color:#FF9800}
+.service-icon{background:color-mix(in srgb, var(--cat-color) 15%, transparent)}
+.service-category-tag{color:var(--cat-color);background:color-mix(in srgb, var(--cat-color) 12%, transparent);border:1px solid color-mix(in srgb, var(--cat-color) 25%, transparent)}
+.service-card:hover{border-color:color-mix(in srgb, var(--cat-color) 30%, transparent)}
+/* Glow on active */
+.uc-btn.active,.filter-tab.active{box-shadow:0 0 15px rgba(255,153,0,0.15)}
+/* Misc helpers */
+.max-w{max-width:1200px;margin-left:auto;margin-right:auto}
+.show-count{font-size:0.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace;align-self:center}
+.no-results{text-align:center;padding:40px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:0.85rem;display:none}
+/* pipeline colors by stage */
+.s0{--sc:#FF9900} .s1{--sc:#64B5F6} .s2{--sc:#FF5252} .s3{--sc:#4DD0E1} .s4{--sc:#A5D6A7} .s5{--sc:#FF9900} .s6{--sc:#CE93D8}
+.stage-dot{color:var(--sc);border-color:color-mix(in srgb,var(--sc) 40%,transparent);background:color-mix(in srgb,var(--sc) 10%,transparent)}
+.stage-dot:hover{background:color-mix(in srgb,var(--sc) 20%,transparent);box-shadow:0 0 20px color-mix(in srgb,var(--sc) 40%,transparent)}
+.stage-line-v{background:linear-gradient(to bottom,var(--sc),var(--sc2,var(--sc)))}
+/* phase colors */
+.ph0{--pc:#FF9900} .ph1{--pc:#64B5F6} .ph2{--pc:#FF5252} .ph3{--pc:#FFD740} .ph4{--pc:#4DD0E1} .ph5{--pc:#CE93D8} .ph6{--pc:#00E676} .ph7{--pc:#FF9800}
+.phase-dot{color:var(--pc);border-color:color-mix(in srgb,var(--pc) 40%,transparent);background:color-mix(in srgb,var(--pc) 12%,transparent)}
+.phase-line{background:linear-gradient(to bottom,var(--pc),transparent)}
+</style>
+</head>
+<body>
+
+<!-- Background canvas -->
+<canvas id="bg-canvas"></canvas>
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<!-- Progress bar -->
+<div id="progress-bar"></div>
+
+<!-- ===== NAV ===== -->
+<nav id="navbar">
+  <div class="nav-logo">☁ AWS Navigator</div>
+  <div class="nav-links">
+    <a href="#hero">Home</a>
+    <a href="#services">Services</a>
+    <a href="#usecase">Use Cases</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#interview">Interview</a>
+  </div>
+  <div class="nav-hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#hero" onclick="toggleMenu()">Home</a>
+  <a href="#services" onclick="toggleMenu()">Services</a>
+  <a href="#usecase" onclick="toggleMenu()">Use Cases</a>
+  <a href="#roadmap" onclick="toggleMenu()">Roadmap</a>
+  <a href="#architecture" onclick="toggleMenu()">Architecture</a>
+  <a href="#pipeline" onclick="toggleMenu()">Pipeline</a>
+  <a href="#interview" onclick="toggleMenu()">Interview</a>
+</div>
+
+<!-- ===== HERO ===== -->
+<section id="hero">
+  <div class="hero-chips" id="heroChips"></div>
+  <div class="hero-badge">✦ AWS DEVOPS NAVIGATOR — LEARN. BUILD. DEPLOY.</div>
+  <h1 class="hero-title">
+    <span class="line1">Master Cloud &</span>
+    <span class="line2">DevOps Engineering</span>
+  </h1>
+  <p class="hero-sub">Your complete interactive guide to AWS services, DevOps pipelines, real-world architectures, and career roadmaps — all in one place.</p>
+  <div class="hero-btns">
+    <a href="#services" class="btn btn-primary">⚡ Explore Services</a>
+    <a href="#roadmap" class="btn btn-secondary">🗺 View Roadmap</a>
+    <a href="#architecture" class="btn btn-outline">🏗 Architecture Guide</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">27+</div><div class="lbl">AWS Services</div></div>
+    <div class="hero-stat"><div class="num">8</div><div class="lbl">Roadmap Phases</div></div>
+    <div class="hero-stat"><div class="num">9</div><div class="lbl">Use Case Flows</div></div>
+    <div class="hero-stat"><div class="num">60+</div><div class="lbl">Interview Q&A</div></div>
+  </div>
+</section>
+
+<!-- ===== SERVICES ===== -->
+<section id="services">
+  <div class="max-w">
+    <div class="section-label">SECTION 02</div>
+    <h2 class="section-title">AWS <span>Service Explorer</span></h2>
+    <p class="section-desc">Click any service card to expand full details — use cases, advantages, limitations, and interview tips.</p>
+    <div class="services-toolbar">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="serviceSearch" placeholder="Search services..." oninput="filterServices()">
+      </div>
+      <div class="filter-tabs" id="filterTabs">
+        <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-tab" onclick="setFilter('compute',this)">Compute</button>
+        <button class="filter-tab" onclick="setFilter('storage',this)">Storage</button>
+        <button class="filter-tab" onclick="setFilter('database',this)">Database</button>
+        <button class="filter-tab" onclick="setFilter('network',this)">Network</button>
+        <button class="filter-tab" onclick="setFilter('security',this)">Security</button>
+        <button class="filter-tab" onclick="setFilter('monitoring',this)">Monitoring</button>
+        <button class="filter-tab" onclick="setFilter('devops',this)">DevOps</button>
+      </div>
+      <span class="show-count" id="showCount"></span>
+    </div>
+    <div class="services-grid" id="servicesGrid"></div>
+    <div class="no-results" id="noResults">No services found matching your search.</div>
+  </div>
+</section>
+
+<!-- ===== USE CASE ===== -->
+<section id="usecase">
+  <div class="max-w">
+    <div class="section-label">SECTION 03</div>
+    <h2 class="section-title">Use Case <span>Matcher</span></h2>
+    <p class="section-desc">Select what you want to build and get instant AWS architecture recommendations, deployment flows, and cost estimates.</p>
+    <div class="usecase-btns" id="ucBtns"></div>
+    <div class="usecase-result" id="ucResult"></div>
+  </div>
+</section>
+
+<!-- ===== ROADMAP ===== -->
+<section id="roadmap">
+  <div class="max-w">
+    <div class="section-label">SECTION 04</div>
+    <h2 class="section-title">Complete DevOps <span>Roadmap</span></h2>
+    <p class="section-desc">A structured 8-phase learning path from zero to production-ready DevOps engineer. Click phases to expand details.</p>
+    <div class="roadmap-timeline" id="roadmapTimeline"></div>
+  </div>
+</section>
+
+<!-- ===== ARCHITECTURE ===== -->
+<section id="architecture">
+  <div class="max-w">
+    <div class="section-label">SECTION 05</div>
+    <h2 class="section-title">Architecture <span>Patterns</span></h2>
+    <p class="section-desc">Visual AWS architecture diagrams for common application patterns — from monoliths to serverless microservices.</p>
+    <div class="arch-grid" id="archGrid"></div>
+  </div>
+</section>
+
+<!-- ===== PIPELINE ===== -->
+<section id="pipeline">
+  <div class="max-w">
+    <div class="section-label">SECTION 06</div>
+    <h2 class="section-title">DevOps <span>Pipeline Flow</span></h2>
+    <p class="section-desc">The complete CI/CD pipeline journey — from developer commit to live production deployment with monitoring.</p>
+    <div class="pipeline-container">
+      <div class="pipeline-track" id="pipelineTrack"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INTERVIEW ===== -->
+<section id="interview">
+  <div class="max-w">
+    <div class="section-label">SECTION 07</div>
+    <h2 class="section-title">Interview <span>Prep Hub</span></h2>
+    <p class="section-desc">Curated AWS and DevOps interview questions with detailed answers. Click to reveal answers.</p>
+    <div class="interview-tabs">
+      <button class="itab active" onclick="switchTab('aws',this)">☁ AWS Questions</button>
+      <button class="itab" onclick="switchTab('devops',this)">⚙ DevOps Questions</button>
+      <button class="itab" onclick="switchTab('scenario',this)">🎯 Scenario Questions</button>
+    </div>
+    <div id="qaContainer"></div>
+    <div class="tip-box" style="margin-top:32px">
+      <h3>✦ Beginner Interview Tips</h3>
+      <ul id="interviewTips"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="name">☁ AWS DevOps Navigator</div>
+      <p>Your one-stop interactive guide to mastering AWS cloud services and DevOps engineering. Build real-world skills, understand architectures, and ace your interviews.</p>
+    </div>
+    <div class="footer-col">
+      <h4>LEARNING PATH</h4>
+      <ul>
+        <li>AWS Fundamentals</li>
+        <li>Cloud Architecture</li>
+        <li>DevOps Basics</li>
+        <li>CI/CD Pipelines</li>
+        <li>Kubernetes & Docker</li>
+        <li>Terraform IaC</li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>AWS SERVICES</h4>
+      <ul>
+        <li>Compute (EC2, Lambda)</li>
+        <li>Storage (S3, EBS, EFS)</li>
+        <li>Databases (RDS, DynamoDB)</li>
+        <li>Networking (VPC, Route53)</li>
+        <li>Security (IAM, KMS)</li>
+        <li>Monitoring (CloudWatch)</li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>PORTFOLIO PROJECTS</h4>
+      <ul>
+        <li>Serverless REST API</li>
+        <li>3-Tier Web App on EC2</li>
+        <li>Static Site on S3+CloudFront</li>
+        <li>EKS Microservices</li>
+        <li>Terraform Infrastructure</li>
+        <li>Full CI/CD Pipeline</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>Built for AWS & DevOps learners. <span>AWS DevOps Navigator</span> — Learn, Build, Deploy.</p>
+    <p>Crafted with <span>♥</span> for the cloud community</p>
+  </div>
+</footer>
+
+<script>
+// ===== DATA =====
+const SERVICES = [
+  {id:'ec2',name:'EC2',icon:'🖥',category:'compute',purpose:'Virtual Servers in the Cloud',
+   what:'Elastic Compute Cloud provides resizable virtual machine instances you can launch in minutes.',
+   useCase:'Hosting web applications, running batch jobs, game servers, machine learning workloads.',
+   whenUse:'Need full OS control, run long-running processes, need specific instance types for compute/memory.',
+   whenNot:'Simple functions that run briefly — Lambda is cheaper. Static websites are better on S3.',
+   pros:['Fully customizable OS','Auto Scaling','Wide instance variety','Spot instances for 90% savings'],
+   cons:['Must manage OS patching','Costs money even when idle','Needs security hardening'],
+   alts:['Lambda (serverless)','ECS/EKS (containers)','Lightsail (simpler)'],
+   arch:'Sits behind a Load Balancer, connects to RDS/DynamoDB for data.',
+   beginner:'Think of EC2 as renting a computer in the cloud. You choose the size (CPU/RAM) and install whatever you need.',
+   tip:'Know the difference between On-Demand, Reserved, and Spot instances. Interviewers love this pricing question!'
+  },
+  {id:'lambda',name:'Lambda',icon:'⚡',category:'compute',purpose:'Serverless Function Execution',
+   what:'Run code without provisioning or managing servers. Pay only when your code runs.',
+   useCase:'API backends, image/video processing triggers, scheduled jobs, event-driven microservices.',
+   whenUse:'Short-lived functions (<15 min), event-driven logic, unpredictable traffic.',
+   whenNot:'Long-running processes, apps needing persistent connections, cold-start-sensitive apps.',
+   pros:['Zero server management','Auto-scales to millions','Pay per 100ms execution','Integrates with all AWS services'],
+   cons:['15-minute execution limit','Cold start latency','Limited /tmp storage (512MB)'],
+   alts:['EC2 (long-running)','ECS Fargate (containers)','App Runner'],
+   arch:'Triggered by API Gateway, S3 events, DynamoDB streams, SQS messages.',
+   beginner:'Lambda is like a vending machine function — it only runs when you press the button, and you only pay for that press.',
+   tip:'Understand Lambda cold starts and how Provisioned Concurrency solves them. Also know Lambda layers!'
+  },
+  {id:'ecs',name:'ECS',icon:'🐳',category:'compute',purpose:'Container Orchestration Service',
+   what:'Run, stop, and manage Docker containers on a cluster. Two launch types: EC2 and Fargate.',
+   useCase:'Microservices, batch processing, running containerized apps without managing Kubernetes.',
+   whenUse:'You use Docker and want AWS-native container orchestration without Kubernetes complexity.',
+   whenNot:'When you need Kubernetes ecosystem tools or advanced scheduling.',
+   pros:['Deep AWS integration','Simpler than EKS','Fargate removes server management','Built-in load balancing'],
+   cons:['Less portable than Kubernetes','Limited scheduling features','Vendor lock-in'],
+   alts:['EKS (Kubernetes)','Fargate','Lambda (for simple tasks)'],
+   arch:'ECS Service sits behind ALB. Tasks pull from ECR images. Logs go to CloudWatch.',
+   beginner:'ECS is like a manager for your Docker containers — it makes sure the right containers are running and restarts them if they crash.',
+   tip:'Know the difference between ECS EC2 launch type vs Fargate. Fargate = you manage nothing. EC2 = you manage the servers.'
+  },
+  {id:'eks',name:'EKS',icon:'☸',category:'compute',purpose:'Managed Kubernetes Service',
+   what:'Run Kubernetes on AWS without needing to install, operate, and maintain your own control plane.',
+   useCase:'Large-scale containerized applications, multi-cloud strategies, complex microservice architectures.',
+   whenUse:'Need Kubernetes features, have existing k8s configs, need advanced networking/scheduling.',
+   whenNot:'Simple workloads — ECS or Fargate is simpler. Small teams may find it overkill.',
+   pros:['Full Kubernetes compatibility','Multi-AZ control plane','Integrates with IAM/VPC','Active Kubernetes ecosystem'],
+   cons:['Complex setup','Higher cost than ECS','Steep learning curve','More operational overhead'],
+   alts:['ECS (simpler containers)','Fargate','GKE/AKS (other clouds)'],
+   arch:'Pods run on Node Groups (EC2 or Fargate). Exposed via Service + Ingress + ALB.',
+   beginner:'EKS is AWS running Kubernetes for you. Kubernetes is like a city traffic system for containers — routing, scaling, healing.',
+   tip:'Know the difference between pods, nodes, deployments, and services. Explain how HPA (Horizontal Pod Autoscaler) works.'
+  },
+  {id:'s3',name:'S3',icon:'🪣',category:'storage',purpose:'Scalable Object Storage',
+   what:'Store and retrieve any amount of data at any time. Designed for 99.999999999% (11 9s) durability.',
+   useCase:'Static website hosting, data lakes, backup & restore, media storage, software distribution.',
+   whenUse:'Storing files, images, videos, logs, backups. Any unstructured data storage need.',
+   whenNot:'Block storage for databases (use EBS). Frequently accessed structured data (use RDS/DynamoDB).',
+   pros:['Virtually unlimited storage','11 9s durability','Built-in versioning','Lifecycle policies','Static website hosting'],
+   cons:['Eventual consistency (now strong since 2020)','Not a filesystem','Object size limit 5TB','Egress costs money'],
+   alts:['EBS (block storage)','EFS (file system)','Glacier (archival)'],
+   arch:'Used for static assets served via CloudFront CDN, or as a data lake feeding Athena/Redshift.',
+   beginner:'S3 is like Google Drive but for your apps — an infinite filing cabinet where you store any file and access it via URL.',
+   tip:'Know S3 storage classes: Standard, IA, Glacier. Understand pre-signed URLs for secure temporary access.'
+  },
+  {id:'ebs',name:'EBS',icon:'💾',category:'storage',purpose:'Block Storage for EC2',
+   what:'Persistent block-level storage volumes for use with EC2 instances — like a hard drive for your server.',
+   useCase:'Boot volumes for EC2, databases on EC2, file systems requiring low latency block access.',
+   whenUse:'EC2 needs persistent storage that survives instance stops. Databases like MySQL on EC2.',
+   whenNot:'Store files shared across multiple EC2s (use EFS). Static files served to users (use S3).',
+   pros:['Low latency (SSD options)','Persistent across EC2 stops','Snapshots to S3','Encryption at rest'],
+   cons:['Only attaches to one EC2 at a time','AZ-specific','Must pre-provision size'],
+   alts:['EFS (multi-instance)','S3 (object storage)','Instance Store (temp, faster)'],
+   arch:'Attached directly to EC2 as a block device. Snapshots backed up to S3.',
+   beginner:'EBS is the hard drive of your EC2 virtual machine. When you turn off your server, your files stay on the EBS drive.',
+   tip:'Know EBS volume types: gp3, io1/io2, st1, sc1 — and when to choose each based on IOPS vs throughput.'
+  },
+  {id:'efs',name:'EFS',icon:'📁',category:'storage',purpose:'Elastic File System (NFS)',
+   what:'Serverless, fully elastic file storage that auto-scales and can be shared across multiple EC2 instances simultaneously.',
+   useCase:'Shared storage for web servers, content management systems, big data analytics, container storage.',
+   whenUse:'Multiple EC2 instances need to read/write the same files simultaneously.',
+   whenNot:'Single EC2 needing block storage (use EBS). Static web assets (use S3).',
+   pros:['Shared across multiple EC2s','Auto-scales capacity','Multi-AZ','POSIX-compliant'],
+   cons:['Higher cost than EBS','Network latency vs EBS','Not suitable for OS boot volumes'],
+   alts:['EBS (single instance)','S3 (object)','FSx (Windows or Lustre)'],
+   arch:'Mounted by multiple EC2 instances in an Auto Scaling Group. Common for WordPress web farms.',
+   beginner:'EFS is like a shared network drive that all your servers can access at the same time — like Google Drive but for servers.',
+   tip:'Understand when to use EFS vs EBS vs S3. The shared-access use case is the key differentiator for EFS.'
+  },
+  {id:'rds',name:'RDS',icon:'🗃',category:'database',purpose:'Managed Relational Database',
+   what:'Managed relational database service supporting MySQL, PostgreSQL, MariaDB, Oracle, SQL Server, and Aurora.',
+   useCase:'Web applications, e-commerce, CRM systems, ERP — any app needing SQL with joins and ACID transactions.',
+   whenUse:'Need SQL, structured data, complex queries with joins, strong consistency.',
+   whenNot:'Massive scale with simple key-value lookups (use DynamoDB). Massive read replicas at extreme scale.',
+   pros:['Automated backups','Multi-AZ failover','Read replicas','Managed patching','Easy scaling'],
+   cons:['Expensive at scale','Can not SSH into DB instance','Vertical scaling requires downtime'],
+   alts:['Aurora (faster, cheaper at scale)','DynamoDB (NoSQL)','Redshift (analytics)'],
+   arch:'Private subnet behind EC2 app tier. Security group restricts access to app tier only.',
+   beginner:'RDS is a managed MySQL/PostgreSQL database where AWS handles backups, patches, and failover — you just connect and query.',
+   tip:'Explain Multi-AZ vs Read Replicas: Multi-AZ is for availability/failover. Read Replicas are for scaling read traffic.'
+  },
+  {id:'dynamodb',name:'DynamoDB',icon:'⚡',category:'database',purpose:'Serverless NoSQL Database',
+   what:'Fully managed, serverless key-value and document database delivering single-digit millisecond performance at any scale.',
+   useCase:'Gaming leaderboards, IoT data, session management, user profiles, shopping carts.',
+   whenUse:'Need massive scale, single-digit ms latency, simple access patterns, serverless architecture.',
+   whenNot:'Complex SQL queries with joins, financial data needing ACID transactions (though DynamoDB does have transactions now).',
+   pros:['Single-digit ms latency','Auto-scales to any traffic','Serverless (no capacity planning)','Built-in TTL','Global tables'],
+   cons:['No complex joins','Partition key design is critical','Expensive for read-heavy at scale','Querying is limited'],
+   alts:['RDS (SQL)','Aurora Serverless','MongoDB on EC2'],
+   arch:'Accessed directly by Lambda or EC2 app tier. DynamoDB Streams trigger Lambda for event-driven patterns.',
+   beginner:'DynamoDB is a super-fast NoSQL database. Instead of tables with joins, you store items by a key — like a giant dictionary.',
+   tip:'Understand partition keys and sort keys deeply. Know Global Secondary Indexes (GSI) vs Local Secondary Indexes (LSI).'
+  },
+  {id:'aurora',name:'Aurora',icon:'🌟',category:'database',purpose:'High-Performance Cloud Database',
+   what:'AWS-built relational database compatible with MySQL and PostgreSQL — 5x faster than MySQL, 3x faster than PostgreSQL.',
+   useCase:'High-performance web apps, SaaS platforms, large-scale e-commerce, anything RDS handles but at higher throughput.',
+   whenUse:'Need RDS but with better performance, auto-scaling storage, or Aurora Serverless v2.',
+   whenNot:'Small apps where cost matters — Aurora costs more than standard RDS MySQL.',
+   pros:['5x MySQL performance','Auto-scales storage 10GB–128TB','Multi-AZ by default','Aurora Serverless v2','Global Database'],
+   cons:['Higher cost than RDS','AWS-specific (less portable)','Can be overkill for small apps'],
+   alts:['RDS MySQL/PostgreSQL','AlloyDB (Google Cloud)','CockroachDB'],
+   arch:'Aurora cluster with writer endpoint + reader endpoint behind app tier. Global tables replicate cross-region.',
+   beginner:'Aurora is like a turbocharged version of MySQL/PostgreSQL that AWS built from scratch. Same SQL, much faster.',
+   tip:'Know Aurora Serverless v2 — it scales capacity instantly. Compare with RDS: Aurora is better performance but higher base cost.'
+  },
+  {id:'vpc',name:'VPC',icon:'🌐',category:'network',purpose:'Virtual Private Cloud',
+   what:'Logically isolated section of AWS cloud where you launch resources in a virtual network you define.',
+   useCase:'Every AWS deployment uses a VPC. Your private network in the cloud with custom IP ranges.',
+   whenUse:'Always — every production workload lives inside a VPC with public and private subnets.',
+   whenNot:'You cannot NOT use VPC for most services. Some serverless services abstract it away.',
+   pros:['Complete network control','Security via Security Groups + NACLs','VPN & Direct Connect support','VPC Peering'],
+   cons:['Complex to design correctly','CIDR conflicts in peering','Learning curve for beginners'],
+   alts:['Default VPC (dev only)'],
+   arch:'Public subnet: Load Balancer. Private subnet: EC2/ECS. Isolated subnet: RDS. Internet Gateway for public access.',
+   beginner:'VPC is your private neighborhood in AWS. You decide the address range, build the roads (subnets), and set up gates (internet gateway).',
+   tip:'Know the difference between Security Groups (stateful, instance-level) and NACLs (stateless, subnet-level). Classic interview question!'
+  },
+  {id:'route53',name:'Route 53',icon:'🌍',category:'network',purpose:'Scalable DNS & Traffic Management',
+   what:'Highly available DNS service that routes users to internet applications with health checks and traffic policies.',
+   useCase:'Domain registration, DNS management, global load balancing, failover routing, latency-based routing.',
+   whenUse:'Any time you need DNS for your domain, or need global traffic routing with health checks.',
+   whenNot:'Simple internal DNS — can use private hosted zones, but some cases are handled by VPC DNS.',
+   pros:['100% SLA availability','Multiple routing policies','Health checks & failover','Latency-based routing','Geo-routing'],
+   cons:['Price per hosted zone','No free tier for domains','Takes up to 48hr for domain propagation'],
+   alts:['Cloudflare DNS','GoDaddy DNS','Azure DNS'],
+   arch:'Route53 → CloudFront (CDN) → ALB → EC2/Lambda.',
+   beginner:'Route53 is the phone book of the internet for your app — it translates "myapp.com" into the actual AWS server IP address.',
+   tip:'Know routing policies: Simple, Weighted, Latency, Failover, Geolocation, Geoproximity, Multi-Value. Each has specific use cases.'
+  },
+  {id:'cloudfront',name:'CloudFront',icon:'🚀',category:'network',purpose:'Global Content Delivery Network',
+   what:'CDN that delivers data, videos, apps, and APIs globally with low latency from 450+ edge locations.',
+   useCase:'Static website acceleration, API caching, video streaming, DDoS protection via AWS Shield.',
+   whenUse:'Serving static assets globally, reducing latency for international users, protecting your origin.',
+   whenNot:'Content that must always be fresh (disable caching). Internal-only services behind VPC.',
+   pros:['450+ edge locations','Integrates with WAF, Shield, ACM','Reduces origin load','Free SSL via ACM'],
+   cons:['Cache invalidation costs','Debugging cache issues is tricky','Costs on data transfer'],
+   alts:['Akamai','Fastly','Cloudflare CDN'],
+   arch:'Users → CloudFront → S3 (static) or ALB (dynamic). WAF attached at CloudFront for security.',
+   beginner:'CloudFront puts copies of your website closer to your users worldwide. If you are in India and the server is in USA, CloudFront copies it to Mumbai edge.',
+   tip:'Know the difference between CloudFront behaviors, origins, and cache policies. Understand signed URLs vs signed cookies for private content.'
+  },
+  {id:'apigateway',name:'API Gateway',icon:'🔌',category:'network',purpose:'Serverless API Management',
+   what:'Fully managed service to create, publish, maintain, monitor, and secure REST, HTTP, and WebSocket APIs.',
+   useCase:'Backend for mobile/web apps, serverless API with Lambda, WebSocket real-time apps.',
+   whenUse:'You need a managed API layer, especially with Lambda. Handles auth, throttling, CORS automatically.',
+   whenNot:'High-throughput APIs where ALB + EC2/ECS is cheaper. Simple internal microservice APIs.',
+   pros:['Native Lambda integration','Built-in auth (Cognito/IAM)','Throttling & quotas','WebSocket support','API versioning'],
+   cons:['Adds latency','Can be expensive at high volume','29-second timeout limit','Cold start with Lambda'],
+   alts:['ALB (for containers)','Kong','Nginx as API Gateway'],
+   arch:'Client → API Gateway → Lambda → DynamoDB (classic serverless stack).',
+   beginner:'API Gateway is the front door for your serverless backend. It receives HTTP requests and sends them to Lambda to process.',
+   tip:'Know REST API vs HTTP API vs WebSocket API in API Gateway. HTTP API is newer, 70% cheaper, and faster — but fewer features.'
+  },
+  {id:'alb',name:'Load Balancer',icon:'⚖',category:'network',purpose:'Distribute Traffic Across Instances',
+   what:'Automatically distributes incoming traffic across multiple targets (EC2, containers, IPs, Lambda).',
+   useCase:'Web applications with multiple servers, microservices routing, blue/green deployments.',
+   whenUse:'Any production app with more than one server. Essential for high availability and auto-scaling.',
+   whenNot:'Single-server dev environments. Lambda-only architectures.',
+   pros:['High availability','SSL termination','Health checks','Path-based routing','Blue/green deployments'],
+   cons:['Adds cost','Latency overhead (minimal)','Must configure health checks carefully'],
+   alts:['NLB (Layer 4, TCP/UDP)','GWLB (network appliances)','API Gateway'],
+   arch:'Internet → ALB → Target Group (EC2 in private subnet across multiple AZs).',
+   beginner:'A Load Balancer is like a traffic cop at the entrance of a restaurant — it directs customers to tables (servers) evenly so no table gets overwhelmed.',
+   tip:'Know ALB vs NLB: ALB is Layer 7 (HTTP/HTTPS, path routing). NLB is Layer 4 (TCP/UDP, ultra-low latency, static IP).'
+  },
+  {id:'iam',name:'IAM',icon:'🔑',category:'security',purpose:'Identity & Access Management',
+   what:'Manage access to AWS services. Users, Groups, Roles, and Policies control who can do what.',
+   useCase:'Every AWS setup. Control which developers can access what, give EC2 access to S3, etc.',
+   whenUse:'Always. Every AWS account needs IAM configured. Principle of least privilege must be followed.',
+   whenNot:'N/A — IAM is always used.',
+   pros:['Fine-grained permissions','Roles for cross-account access','No extra cost','MFA support','Identity federation'],
+   cons:['Complex policy syntax','Easy to misconfigure','Overly permissive roles are a security risk'],
+   alts:['AWS SSO (IAM Identity Center)','Okta (federation)','Active Directory'],
+   arch:'IAM Roles attached to EC2/Lambda/ECS tasks grant permissions without hardcoding keys.',
+   beginner:'IAM is like a keycard system in a building. Each person gets a keycard (role/user) that only opens the doors they need.',
+   tip:'Classic question: explain IAM User vs Role vs Policy. Know when to use roles (for services) vs users (for humans). Never hardcode access keys!'
+  },
+  {id:'cognito',name:'Cognito',icon:'👤',category:'security',purpose:'User Authentication & Authorization',
+   what:'Add user sign-up, sign-in, and access control to web/mobile apps. Supports social identity providers.',
+   useCase:'Mobile app login, web app authentication, social login (Google/Facebook), JWT token issuing.',
+   whenUse:'Building apps that need user auth without managing your own auth server.',
+   whenNot:'Enterprise SSO (use IAM Identity Center). Simple internal apps (use IAM).',
+   pros:['Managed auth service','Social login built-in','Issues JWT tokens','MFA support','Scales to millions'],
+   cons:['Complex configuration','User Pool vs Identity Pool confusion','Customization is limited','Pricey at scale'],
+   alts:['Auth0','Firebase Auth','Okta','Custom JWT'],
+   arch:'App → Cognito (User Pool for auth) → JWT Token → API Gateway/Lambda.',
+   beginner:'Cognito is a ready-made login system for your app. Instead of building login from scratch, Cognito handles signup, login, forgot password, MFA, etc.',
+   tip:'Know the difference between User Pools (authentication/directory) and Identity Pools (authorization to AWS services). Very commonly confused!'
+  },
+  {id:'kms',name:'KMS',icon:'🔐',category:'security',purpose:'Key Management Service',
+   what:'Create and control encryption keys used to encrypt your data across AWS services.',
+   useCase:'Encrypt S3 objects, EBS volumes, RDS databases, Lambda environment variables, secrets.',
+   whenUse:'Any data that needs encryption at rest. Compliance requirements (HIPAA, PCI-DSS, SOC2).',
+   whenNot:'For very simple non-sensitive test environments. Though encrypting everything is best practice.',
+   pros:['FIPS 140-2 compliant','Automatic key rotation','Integrated with 100+ AWS services','Audit via CloudTrail'],
+   cons:['Cost per API call','Key deletion delay (7-30 days)','KMS limits (10,000 req/sec)'],
+   alts:['AWS CloudHSM (dedicated hardware)','Vault (HashiCorp)'],
+   arch:'S3/EBS/RDS use KMS CMKs for envelope encryption. Lambda reads secrets from Secrets Manager (backed by KMS).',
+   beginner:'KMS is like a secure vault for encryption keys. You never see the raw key — KMS holds it and uses it on your behalf to encrypt/decrypt data.',
+   tip:'Know envelope encryption: AWS generates a data key, encrypts data with it, then encrypts the data key with your KMS CMK. Two layers!'
+  },
+  {id:'waf',name:'WAF',icon:'🛡',category:'security',purpose:'Web Application Firewall',
+   what:'Protect web applications from common exploits like SQL injection, XSS, and DDoS at the application layer.',
+   useCase:'Any public-facing web app. E-commerce sites, APIs, web portals needing protection from attacks.',
+   whenUse:'Any public-facing app that processes user input. Required for compliance (PCI-DSS).',
+   whenNot:'Internal-only apps. WAF adds latency and cost — not needed for non-public services.',
+   pros:['Block OWASP Top 10 attacks','Managed rule groups (AWS + marketplace)','Rate limiting','Bot control','Real-time metrics'],
+   cons:['False positives can block legit traffic','Cost per rule evaluation','Complex rule tuning'],
+   alts:['Cloudflare WAF','ModSecurity','Nginx WAF'],
+   arch:'CloudFront → WAF rules applied → blocks bad requests → passes clean traffic to ALB/API Gateway.',
+   beginner:'WAF is a bouncer for your website. It checks every request coming in and blocks ones that look like hacking attempts before they reach your app.',
+   tip:'Know WAF is attached to CloudFront, ALB, or API Gateway. Understand the difference between managed rules and custom rules.'
+  },
+  {id:'cloudwatch',name:'CloudWatch',icon:'📊',category:'monitoring',purpose:'Monitoring & Observability',
+   what:'Collect and track metrics, collect and monitor log files, set alarms, and automatically react to changes.',
+   useCase:'Monitor EC2 CPU, Lambda errors, RDS connections, custom app metrics, log aggregation.',
+   whenUse:'Always. Every production AWS deployment needs CloudWatch for visibility and alerting.',
+   whenNot:'Not a replacement for APM tools (use X-Ray for distributed tracing). Log analytics at scale needs OpenSearch.',
+   pros:['Native AWS integration','Dashboards & alarms','Logs Insights for querying logs','Container Insights','Anomaly detection'],
+   cons:['Log Insights can be expensive at scale','Not a full APM solution','Dashboard customization limited'],
+   alts:['Datadog','New Relic','Prometheus + Grafana','Splunk'],
+   arch:'EC2/Lambda/RDS send metrics → CloudWatch. Alarms trigger SNS notifications or Auto Scaling actions.',
+   beginner:'CloudWatch is the dashboard and alert system of AWS. It watches your resources and sends you a text/email when something goes wrong.',
+   tip:'Know CloudWatch Metrics vs Logs vs Events vs Alarms. Understand the difference between standard (5-min) and detailed (1-min) monitoring.'
+  },
+  {id:'cloudtrail',name:'CloudTrail',icon:'📋',category:'monitoring',purpose:'API Activity Logging & Audit',
+   what:'Records every API call made in your AWS account — who did what, when, from where, on which resource.',
+   useCase:'Security auditing, compliance, troubleshooting unauthorized changes, forensics.',
+   whenUse:'Always enable for every production account. Required for compliance (SOC2, HIPAA, PCI-DSS, ISO 27001).',
+   whenNot:'Not a replacement for application logs (use CloudWatch Logs).',
+   pros:['Full audit trail','Free for 90-day history','Integration with EventBridge for automation','S3 storage for long-term'],
+   cons:['Logs can be large and expensive to store','Not real-time analysis (use Athena or CloudWatch Insights)'],
+   alts:['AWS Config (resource change history)'],
+   arch:'All API calls → CloudTrail → S3 (long-term) + CloudWatch Logs (real-time analysis). EventBridge triggers on suspicious actions.',
+   beginner:'CloudTrail is the security camera of your AWS account. It records every single action taken — by humans or machines — so you can audit and investigate.',
+   tip:'Differentiate CloudTrail from CloudWatch: CloudTrail = who did WHAT API action. CloudWatch = how are resources PERFORMING. Both are essential!'
+  },
+  {id:'codepipeline',name:'CodePipeline',icon:'🔄',category:'devops',purpose:'Continuous Delivery Pipeline',
+   what:'Fully managed continuous delivery service that automates build, test, and deploy phases.',
+   useCase:'Automating software release pipeline from GitHub commit to production EC2/ECS/Lambda deployment.',
+   whenUse:'AWS-native CI/CD. Works well when your stack is all-AWS and you want native integration.',
+   whenNot:'Complex multi-cloud CI/CD — Jenkins or GitHub Actions offer more flexibility.',
+   pros:['Fully managed','Native AWS integration','Visual pipeline view','CodeStar Connections for GitHub/Bitbucket'],
+   cons:['Less flexible than Jenkins','AWS-only','Can get expensive with many pipelines'],
+   alts:['Jenkins','GitHub Actions','GitLab CI','CircleCI'],
+   arch:'GitHub push → CodePipeline → CodeBuild (build) → ECR (image) → CodeDeploy (deploy to ECS/EC2).',
+   beginner:'CodePipeline is an automated assembly line for your code. When you push code to GitHub, it automatically builds, tests, and deploys it.',
+   tip:'Know the stages: Source → Build → Test → Deploy. CodePipeline orchestrates but uses CodeBuild for building and CodeDeploy for deploying.'
+  },
+  {id:'codebuild',name:'CodeBuild',icon:'🔨',category:'devops',purpose:'Managed Build & Test Service',
+   what:'Fully managed build service that compiles source code, runs tests, and produces deployable artifacts.',
+   useCase:'Building Docker images, running unit tests, packaging Lambda functions, npm/Maven/Gradle builds.',
+   whenUse:'AWS-native builds. You define a buildspec.yml file with commands to run.',
+   whenNot:'Complex multi-environment builds where Jenkins pipelines are already well established.',
+   pros:['No server to manage','Pay per build minute','Docker support','Scales automatically','VPC support'],
+   cons:['Cold start (2-3 min sometimes)','Limited buildspec customization vs Jenkins','Debugging failures can be tricky'],
+   alts:['GitHub Actions','Jenkins','GitLab CI Runner'],
+   arch:'CodePipeline triggers CodeBuild with source from S3/GitHub. Builds push Docker image to ECR.',
+   beginner:'CodeBuild is like a robot that takes your code, follows your recipe (buildspec.yml), and produces a packaged artifact or Docker image.',
+   tip:'Know buildspec.yml structure: phases (install, pre_build, build, post_build), artifacts, cache. Know how to push a Docker image to ECR from CodeBuild.'
+  },
+  {id:'codedeploy',name:'CodeDeploy',icon:'🚀',category:'devops',purpose:'Automated Code Deployment',
+   what:'Automates code deployments to EC2, Lambda, and ECS. Supports rolling, blue/green, and canary deployments.',
+   useCase:'Zero-downtime deployments to EC2 Auto Scaling Groups, Lambda alias traffic shifting, ECS blue/green.',
+   whenUse:'Need automated deployments with rollback support to EC2 or ECS.',
+   whenNot:'Kubernetes deployments (use kubectl/Helm/ArgoCD). Simple Lambda-only (use CDK/SAM).',
+   pros:['Zero-downtime deployments','Automatic rollback on failure','Blue/green support','AppSpec.yml is simple','Works with Auto Scaling'],
+   cons:['EC2 setup requires CodeDeploy agent','Configuration files can be confusing','Limited compared to k8s rolling updates'],
+   alts:['ArgoCD (Kubernetes)','Spinnaker','GitHub Actions deploy steps'],
+   arch:'CodePipeline → CodeDeploy → Auto Scaling Group. On failure, CodeDeploy triggers automatic rollback.',
+   beginner:'CodeDeploy is a robot deployment manager. It takes your built app and carefully installs it on servers — half at a time so your site stays live during updates.',
+   tip:'Know deployment types: In-place (rolling), Blue/Green. Know AppSpec.yml hooks: BeforeInstall, AfterInstall, ApplicationStart, ValidateService.'
+  }
+];
+
+const USE_CASES = [
+  {
+    name:'E-commerce',icon:'🛒',
+    services:['EC2 Auto Scaling','RDS Aurora','ElastiCache','S3','CloudFront','SES','SQS','WAF'],
+    why:'E-commerce needs reliable SQL databases for orders/inventory, auto-scaling for traffic spikes (Black Friday), CDN for product images, caching for product catalogs, and email for confirmations.',
+    flow:['Route53','CloudFront + WAF','ALB','EC2 Auto Scaling','Aurora RDS','ElastiCache','SES (emails)'],
+    security:'WAF, Shield, KMS encryption for payment data, VPC private subnets for DB, IAM roles.',
+    scaling:'EC2 Auto Scaling based on CPU/request metrics. Aurora Read Replicas for read-heavy catalog queries.',
+    cost:'medium'
+  },
+  {
+    name:'Chat App',icon:'💬',
+    services:['API Gateway WebSocket','Lambda','DynamoDB','Cognito','SNS','S3','CloudFront'],
+    why:'Real-time messaging needs WebSocket connections (API Gateway), serverless backend (Lambda), fast NoSQL storage (DynamoDB), user auth (Cognito), and push notifications (SNS).',
+    flow:['Route53','CloudFront','Cognito (auth)','API Gateway WebSocket','Lambda','DynamoDB','SNS (push)'],
+    security:'Cognito JWT tokens, API Gateway authorizers, DynamoDB encryption at rest.',
+    scaling:'API Gateway and Lambda auto-scale to millions of WebSocket connections.',
+    cost:'low'
+  },
+  {
+    name:'AI Tool',icon:'🤖',
+    services:['Lambda','API Gateway','SageMaker','S3','DynamoDB','Cognito','CloudFront','ECR'],
+    why:'AI tools need SageMaker for ML inference, S3 for storing models and training data, Lambda for serverless inference endpoints, DynamoDB for job tracking.',
+    flow:['CloudFront','API Gateway','Lambda','SageMaker Endpoint','S3 (models)','DynamoDB (results)'],
+    security:'IAM roles for SageMaker access, VPC endpoints, KMS for model artifacts.',
+    scaling:'SageMaker auto-scaling inference endpoints, Lambda concurrency for API spikes.',
+    cost:'high'
+  },
+  {
+    name:'Blog',icon:'✍',
+    services:['S3','CloudFront','Route53','Lambda','DynamoDB','ACM'],
+    why:'Blogs are largely static. S3+CloudFront is ideal: near-zero cost, global delivery, high availability. Lambda can handle dynamic features like comments.',
+    flow:['Route53','CloudFront','S3 (static site)','API Gateway + Lambda (dynamic)','DynamoDB (comments)'],
+    security:'ACM SSL certificate, S3 bucket policy (public read), WAF if needed.',
+    scaling:'CloudFront handles unlimited traffic automatically. No servers to scale.',
+    cost:'low'
+  },
+  {
+    name:'Streaming Platform',icon:'🎬',
+    services:['CloudFront','MediaLive','S3','Elemental MediaStore','Cognito','DynamoDB','Lambda'],
+    why:'Video streaming requires global CDN (CloudFront), video transcoding (AWS Elemental), scalable metadata storage (DynamoDB), and user auth (Cognito).',
+    flow:['Ingest via MediaLive','Store in S3','Transcode via MediaConvert','Deliver via CloudFront','Users via Cognito'],
+    security:'CloudFront signed URLs for premium content, Cognito for subscriber auth, WAF for bot protection.',
+    scaling:'CloudFront scales automatically. S3 is unlimited. DynamoDB handles metadata at any scale.',
+    cost:'high'
+  },
+  {
+    name:'Resume Analyzer',icon:'📄',
+    services:['Lambda','API Gateway','S3','Textract','Comprehend','DynamoDB','SES'],
+    why:'Document processing pipeline: S3 stores PDFs, Textract extracts text, Comprehend does NLP analysis, Lambda orchestrates the workflow, DynamoDB stores results.',
+    flow:['API Gateway','Lambda (orchestrator)','S3 (PDF upload)','Textract (extract text)','Comprehend (NLP)','DynamoDB (results)','SES (email)'],
+    security:'Pre-signed S3 URLs for upload, IAM roles for Textract/Comprehend access.',
+    scaling:'Fully serverless — scales with demand automatically.',
+    cost:'low'
+  },
+  {
+    name:'MERN App',icon:'⚛',
+    services:['EC2 or ECS','ALB','RDS','S3','CloudFront','Route53','ACM','ECR'],
+    why:'MERN stack (MongoDB/MySQL, Express, React, Node.js) needs containers or EC2 for backend, S3+CloudFront for React frontend, RDS for structured data.',
+    flow:['Route53','CloudFront (React)','ALB','ECS/EC2 (Node.js)','RDS MySQL','S3 (uploads)'],
+    security:'ALB SSL termination, security groups for RDS, IAM roles for ECS tasks, KMS for secrets.',
+    scaling:'ECS Service Auto Scaling, RDS Read Replicas, CloudFront for frontend.',
+    cost:'medium'
+  },
+  {
+    name:'Portfolio Site',icon:'🎨',
+    services:['S3','CloudFront','Route53','ACM','Lambda','SES'],
+    why:'Portfolio = static site. S3 hosts HTML/CSS/JS at near-zero cost. CloudFront provides HTTPS and global CDN. Lambda+SES powers the contact form.',
+    flow:['Route53','CloudFront + ACM','S3 (static hosting)','API Gateway + Lambda (contact form)','SES (email)'],
+    security:'ACM free SSL, S3 bucket with CloudFront OAC.',
+    scaling:'Handles millions of visits via CloudFront edge — no servers needed.',
+    cost:'low'
+  },
+  {
+    name:'Documentation Generator',icon:'📚',
+    services:['Lambda','S3','API Gateway','Comprehend','Bedrock','DynamoDB','CloudFront'],
+    why:'AI-powered doc generation: API Gateway receives requests, Lambda calls Amazon Bedrock (Claude/Titan) for AI generation, stores results in S3, serves via CloudFront.',
+    flow:['API Gateway','Lambda (orchestrator)','Amazon Bedrock (AI model)','S3 (store docs)','DynamoDB (metadata)','CloudFront (serve docs)'],
+    security:'IAM roles for Bedrock access, VPC endpoints, API key authentication.',
+    scaling:'Lambda scales to thousands of concurrent generations. Bedrock handles model scaling.',
+    cost:'medium'
+  }
+];
+
+const ROADMAP_PHASES = [
+  {name:'Phase 1 — Foundations',topics:['Linux command line basics','Networking: TCP/IP, DNS, HTTP/HTTPS','Git version control'],
+   skills:['Navigate filesystem, manage processes','Understand how internet works','Branch, merge, rebase, resolve conflicts'],
+   projects:['Set up Ubuntu VM','Build a simple static website','Contribute to open-source project'],
+   duration:'4-6 weeks',diff:'easy',
+   desc:'The foundation every DevOps engineer needs — Linux, networking, and Git are non-negotiable prerequisites.'
+  },
+  {name:'Phase 2 — Containers',topics:['Docker fundamentals','Docker Compose','Container registries (ECR/DockerHub)'],
+   skills:['Write Dockerfiles','Multi-stage builds','Container networking & volumes'],
+   projects:['Dockerize a Node.js app','Build multi-service app with Compose','Push image to ECR'],
+   duration:'3-4 weeks',diff:'easy',
+   desc:'Containers changed DevOps. Docker is the entry point to the entire container ecosystem.'
+  },
+  {name:'Phase 3 — CI/CD with Jenkins',topics:['Jenkins installation & setup','Declarative pipelines (Jenkinsfile)','Integrating tests in pipelines'],
+   skills:['Create multistage pipelines','Integrate with GitHub webhooks','Run Docker builds in Jenkins'],
+   projects:['Build Jenkins pipeline for a web app','Automate Docker build + push','Set up test reporting'],
+   duration:'3-4 weeks',diff:'medium',
+   desc:'Jenkins is the most widely used CI/CD tool. Understanding pipelines here translates to any CI system.'
+  },
+  {name:'Phase 4 — AWS Cloud',topics:['Core services: EC2, S3, VPC, IAM, RDS','Serverless: Lambda, API Gateway, DynamoDB','Networking: ALB, Route53, CloudFront'],
+   skills:['Deploy 3-tier web app on AWS','Build serverless API','Configure VPC with public/private subnets'],
+   projects:['Deploy MERN app on EC2+RDS','Build serverless REST API','Host static site on S3+CloudFront'],
+   duration:'6-8 weeks',diff:'medium',
+   desc:'The core of modern DevOps. AWS is the dominant cloud platform — deep knowledge here sets you apart.'
+  },
+  {name:'Phase 5 — Infrastructure as Code',topics:['Terraform basics: providers, resources, state','Modules and workspaces','Remote state with S3+DynamoDB'],
+   skills:['Write Terraform for full AWS infrastructure','Manage state remotely','Use modules for reuse'],
+   projects:['Provision full VPC with Terraform','Terraform module for ECS deployment','Manage multiple environments (dev/prod)'],
+   duration:'4-5 weeks',diff:'medium',
+   desc:'IaC is the DevOps superpower. Never click through consoles again — define infrastructure as code.'
+  },
+  {name:'Phase 6 — Kubernetes',topics:['Core concepts: Pods, Deployments, Services, Ingress','Helm charts','EKS setup and operations'],
+   skills:['Deploy microservices to Kubernetes','Configure HPA and resource limits','Manage secrets and ConfigMaps'],
+   projects:['Deploy microservices app on EKS','Build Helm chart for your app','Implement HPA for auto-scaling'],
+   duration:'6-8 weeks',diff:'hard',
+   desc:'Kubernetes is the operating system of the cloud. EKS knowledge is highly valued in the job market.'
+  },
+  {name:'Phase 7 — Monitoring & Observability',topics:['CloudWatch metrics, logs, alarms','Prometheus + Grafana on Kubernetes','Distributed tracing with X-Ray'],
+   skills:['Create custom CloudWatch dashboards','Set up Prometheus scrapers','Build Grafana dashboards'],
+   projects:['Full observability stack for EKS app','CloudWatch alarms for SLA monitoring','Set up PagerDuty alerting'],
+   duration:'3-4 weeks',diff:'medium',
+   desc:'You cannot improve what you cannot measure. Monitoring is what separates hobby projects from production systems.'
+  },
+  {name:'Phase 8 — Production Deployment',topics:['Blue/green and canary deployments','Auto Scaling and HA architecture','Security hardening & compliance'],
+   skills:['Zero-downtime deployments','Multi-region architecture design','Cost optimization strategies'],
+   projects:['Full production deployment with rollback','Multi-AZ architecture setup','Cost optimization audit'],
+   duration:'4-6 weeks',diff:'hard',
+   desc:'Production is where skills meet real-world consequences. Focus on reliability, security, and cost efficiency.'
+  }
+];
+
+const ARCH_PATTERNS = [
+  {
+    title:'3-Tier Web App',
+    nodes:[
+      {name:'Users',desc:'Web / Mobile clients',badge:null,badgeColor:null},
+      {name:'Route 53',desc:'DNS resolution',badge:'DNS',badgeColor:'#4FC3F7'},
+      {name:'CloudFront',desc:'CDN — caches static assets globally',badge:'CDN',badgeColor:'#FF9900'},
+      {name:'Application Load Balancer',desc:'Distributes traffic across EC2 instances',badge:'Layer 7',badgeColor:'#00E676'},
+      {name:'EC2 (Auto Scaling Group)',desc:'App servers in private subnet, multi-AZ',badge:'Compute',badgeColor:'#FF9900'},
+      {name:'RDS Aurora',desc:'MySQL-compatible DB in isolated subnet',badge:'DB',badgeColor:'#CE93D8'},
+    ]
+  },
+  {
+    title:'Serverless API',
+    nodes:[
+      {name:'Mobile / Web Client',desc:'SPA or native mobile app',badge:null,badgeColor:null},
+      {name:'Cognito',desc:'User authentication & JWT issuance',badge:'Auth',badgeColor:'#FF5252'},
+      {name:'API Gateway',desc:'HTTP/REST/WebSocket API endpoint',badge:'API',badgeColor:'#4FC3F7'},
+      {name:'AWS Lambda',desc:'Business logic — scales to 0',badge:'Compute',badgeColor:'#FF9900'},
+      {name:'DynamoDB',desc:'NoSQL data — single-digit ms latency',badge:'NoSQL',badgeColor:'#CE93D8'},
+    ]
+  },
+  {
+    title:'Static Website',
+    nodes:[
+      {name:'Developer',desc:'Pushes code to GitHub',badge:null,badgeColor:null},
+      {name:'S3 Bucket',desc:'Stores HTML/CSS/JS static files',badge:'Storage',badgeColor:'#4FC3F7'},
+      {name:'CloudFront',desc:'Global CDN with 450+ edge locations',badge:'CDN',badgeColor:'#FF9900'},
+      {name:'ACM Certificate',desc:'Free SSL/TLS for HTTPS',badge:'SSL',badgeColor:'#00E676'},
+      {name:'Route 53',desc:'Points domain to CloudFront',badge:'DNS',badgeColor:'#4FC3F7'},
+    ]
+  },
+  {
+    title:'Microservices on EKS',
+    nodes:[
+      {name:'Users',desc:'Client applications',badge:null,badgeColor:null},
+      {name:'Route 53 + ACM',desc:'DNS + SSL certificate',badge:'DNS/SSL',badgeColor:'#4FC3F7'},
+      {name:'ALB Ingress',desc:'Kubernetes ingress controller',badge:'Ingress',badgeColor:'#00E676'},
+      {name:'EKS Pods',desc:'Containerized microservices in pods',badge:'K8s',badgeColor:'#FF9900'},
+      {name:'RDS + ElastiCache',desc:'Relational data + Redis caching',badge:'Data',badgeColor:'#CE93D8'},
+    ]
+  }
+];
+
+const PIPELINE_STAGES = [
+  {emoji:'👨‍💻',name:'Developer',desc:'Writes code locally, runs tests, commits to feature branch',tags:['Git commit','Local tests','Code review']},
+  {emoji:'🐙',name:'GitHub',desc:'Pull request triggers CI pipeline. Code review by team. Merge to main on approval.',tags:['Pull Request','Code Review','Merge']},
+  {emoji:'🔨',name:'Jenkins / CodeBuild',desc:'Compiles code, runs unit tests, security scans, builds Docker image',tags:['Build','Unit Tests','SAST','Docker Build']},
+  {emoji:'🐳',name:'Docker / ECR',desc:'Docker image tagged with commit SHA, pushed to Elastic Container Registry',tags:['Docker Image','ECR Push','Image Scan']},
+  {emoji:'📦',name:'Terraform',desc:'Infrastructure changes applied: new ECS task definition, updated ALB rules, scaling config',tags:['IaC','Plan','Apply','State']},
+  {emoji:'☁',name:'AWS Deploy',desc:'CodeDeploy rolls out to ECS/EC2 using blue/green strategy. Health checks validate.',tags:['ECS Deploy','Blue/Green','Health Check','Rollback']},
+  {emoji:'📊',name:'Monitoring',desc:'CloudWatch tracks metrics. Alarms notify team. X-Ray traces requests end-to-end.',tags:['CloudWatch','Alarms','X-Ray','Grafana']}
+];
+
+const INTERVIEW_QA = {
+  aws:[
+    {q:'What is the difference between EC2 and Lambda?',a:'EC2 provides full virtual machines where you manage the OS, patching, and runtime. It runs 24/7 and is best for long-running processes or apps needing full control. Lambda is serverless — you upload a function and it runs only when triggered. No servers to manage, pay per 100ms execution, max 15-minute timeout. Choose Lambda for short event-driven tasks; choose EC2 for persistent apps requiring full OS control.'},
+    {q:'Explain S3 storage classes and when to use each.',a:'Standard: Frequently accessed data, low latency (web apps, game assets). Standard-IA (Infrequent Access): Data accessed monthly (backups, disaster recovery). One Zone-IA: Lower cost, non-critical data in single AZ. Glacier Instant: Archives accessed once per quarter. Glacier Flexible: Long-term archives, retrieval in hours. Glacier Deep Archive: 7+ year retention, retrieval in 12-48 hours. Intelligent-Tiering: Unknown access patterns — AWS automatically moves objects between tiers.'},
+    {q:'What is the difference between Security Groups and NACLs?',a:'Security Groups are stateful, instance-level firewalls — if you allow inbound traffic, the response traffic is automatically allowed outbound. NACLs (Network Access Control Lists) are stateless subnet-level firewalls — you must explicitly allow inbound AND outbound rules. Security Groups only allow rules (no deny). NACLs support both allow and deny. Use Security Groups for most cases; use NACLs for subnet-level blocking (e.g., blocking a specific IP range).'},
+    {q:'What is Multi-AZ vs Read Replicas in RDS?',a:'Multi-AZ creates a synchronous standby replica in a different Availability Zone for high availability. If the primary fails, RDS automatically fails over to the standby — no data loss, minimal downtime. Read Replicas are asynchronous copies used to scale READ traffic. You can have up to 5 read replicas. They can be in different AZs or even different regions. Multi-AZ is for availability/failover. Read Replicas are for performance/scale.'},
+    {q:'What is IAM and explain the principle of least privilege?',a:'IAM (Identity and Access Management) is AWS\'s authorization system — it controls who can do what to which resources. Users are humans. Roles are for services or cross-account access. Policies are JSON documents defining permissions. Principle of least privilege means granting only the minimum permissions needed for a task and nothing more. Example: a Lambda function that only reads from DynamoDB should only have dynamodb:GetItem and dynamodb:Query permissions — not full admin access. This limits blast radius if credentials are compromised.'},
+    {q:'What is VPC and why do we use it?',a:'VPC (Virtual Private Cloud) is your logically isolated private network in AWS. You define the IP range (CIDR block), create subnets (public for internet-facing, private for internal resources), set up route tables, and control traffic via Security Groups and NACLs. We use VPCs to: isolate resources from the public internet, control network traffic with fine-grained rules, meet compliance requirements, and create secure multi-tier architectures where databases are never directly accessible from the internet.'},
+    {q:'Explain CloudFront and when you would use it.',a:'CloudFront is AWS\'s CDN with 450+ edge locations globally. When a user requests content, CloudFront serves it from the nearest edge location, reducing latency. Use it for: serving static assets (images, JS, CSS) globally; reducing load on your origin (EC2/S3); free SSL via ACM; DDoS protection via Shield; integrating WAF for security; streaming video. Without CloudFront, a user in India hitting a server in US-East gets ~200ms latency. With CloudFront, they hit a Mumbai edge node at ~5ms for cached content.'},
+    {q:'What is the difference between SQS and SNS?',a:'SQS (Simple Queue Service) is a message queue — producers put messages in a queue, consumers poll and process them one at a time. Messages persist until processed. Used for decoupling services, load leveling, ensuring every message is processed. SNS (Simple Notification Service) is a pub/sub notification system — one publisher sends a message, it\'s fanned out to multiple subscribers instantly. Subscribers can be Lambda, SQS, email, HTTP endpoints. The classic pattern is SNS → SQS: SNS fans out to multiple SQS queues for parallel processing.'},
+    {q:'What is Auto Scaling and how does it work?',a:'EC2 Auto Scaling automatically adjusts the number of EC2 instances based on demand. An Auto Scaling Group (ASG) maintains a minimum, maximum, and desired count of instances. Scaling policies: Target Tracking (maintain 70% CPU), Step Scaling (add 2 instances when CPU > 80%), Scheduled Scaling (add instances at 9am weekdays). A Launch Template defines what type of instance to launch. The ASG registers new instances with the Load Balancer automatically. Scale in removes instances after draining connections. This ensures your app handles traffic spikes without paying for idle capacity.'},
+    {q:'Explain the shared responsibility model.',a:'AWS manages security OF the cloud — physical hardware, data center security, network infrastructure, hypervisor, and the physical separation between customers. YOU are responsible for security IN the cloud — your OS patching (for EC2), application security, data encryption, access management (IAM), network configuration (VPC, Security Groups), and everything you deploy. Example: AWS ensures the physical server is secure. You ensure your EC2\'s Security Group doesn\'t have port 22 open to 0.0.0.0/0.'},
+  ],
+  devops:[
+    {q:'What is CI/CD and why is it important?',a:'CI (Continuous Integration) is the practice of frequently merging code changes into a shared repository, where automated builds and tests run on every commit. This catches integration bugs early. CD (Continuous Delivery) automatically deploys every validated build to staging. Continuous Deployment goes further — automatically deploying to production. Importance: reduces manual errors, shortens release cycles from months to days/hours, provides fast feedback on bugs, and makes deployment a routine non-event rather than a stressful big-bang release.'},
+    {q:'What is Docker and how does containerization differ from virtualization?',a:'Docker packages applications and their dependencies into containers — lightweight, portable, isolated units. Containers share the host OS kernel, making them much more lightweight than VMs (start in seconds, use MBs vs GBs). VMs virtualize the entire hardware stack, each VM runs its own OS kernel. Containers virtualize only the OS user space. Docker advantages: consistent environments (works on my machine = works in prod), fast startup, efficient resource use, easy horizontal scaling. Container = shipping container analogy: same container works on any ship (host) and contains everything needed.'},
+    {q:'Explain Jenkins pipeline stages with an example.',a:'A Jenkins pipeline defined in Jenkinsfile has stages: pipeline { agent { docker "node:18" } stages { stage("Install") { steps { sh "npm install" } } stage("Test") { steps { sh "npm test" } } stage("Build") { steps { sh "docker build -t myapp:${BUILD_NUMBER} ." } } stage("Push to ECR") { steps { sh "docker push ${ECR_REPO}:${BUILD_NUMBER}" } } stage("Deploy") { steps { sh "aws ecs update-service --cluster prod --service myapp --force-new-deployment" } } } post { failure { mail to: "team@company.com", subject: "Build Failed" } } }'},
+    {q:'What is Terraform and what is "state"?',a:'Terraform is an Infrastructure as Code tool by HashiCorp — you define cloud resources in HCL (HashiCorp Configuration Language) and Terraform creates/updates/destroys them to match the desired state. Terraform state is a JSON file (terraform.tfstate) that maps your HCL config to real cloud resources. It tracks what resources exist, their IDs, and configuration. In teams, state is stored remotely in S3 + DynamoDB locking to prevent concurrent modifications. terraform plan compares desired state (HCL) vs current state (tfstate) vs actual cloud, then shows what changes will be made. terraform apply executes those changes.'},
+    {q:'What is the difference between horizontal and vertical scaling?',a:'Vertical scaling (scale up) means making existing servers bigger — upgrading from t3.medium to c5.4xlarge. Simpler but has limits (you can only go so large) and requires downtime for EC2 size changes. Horizontal scaling (scale out) means adding more servers — running 10 t3.medium instances instead of 1 large one. Preferred in cloud because it\'s near-unlimited, provides redundancy, and can be automated. AWS Auto Scaling enables horizontal scaling. Stateless applications scale horizontally well. Stateful apps (like databases) are harder to scale horizontally and often require vertical scaling or special sharding strategies.'},
+    {q:'What is blue/green deployment?',a:'Blue/green deployment runs two identical production environments: Blue (current live) and Green (new version). Traffic initially flows 100% to Blue. You deploy the new version to Green and test it. When ready, you shift traffic — either all at once or gradually via weighted routing — from Blue to Green. If anything goes wrong, you instantly shift back to Blue (rollback in seconds). Blue/Green eliminates downtime during deployments and provides instant rollback. AWS CodeDeploy, ECS, and Elastic Beanstalk all support blue/green natively. The trade-off is running two environments simultaneously (double cost during deployment window).'},
+    {q:'Explain Kubernetes architecture: what are pods, nodes, and clusters?',a:'Cluster is the entire Kubernetes system. Control Plane (master) components: API Server (entry point for all requests), etcd (distributed key-value store holding cluster state), Scheduler (assigns pods to nodes), Controller Manager (ensures desired state). Worker Nodes run the actual workloads. Each node has: Kubelet (agent ensuring containers are running), Container Runtime (Docker/containerd), Kube-proxy (networking). Pod is the smallest deployable unit — one or more containers sharing a network namespace and storage. A Deployment manages a set of identical pods, ensuring the right number are always running and handling rolling updates.'},
+    {q:'What is the difference between monolithic and microservices architecture?',a:'Monolith: entire application (UI, business logic, data access) deployed as one unit. Simple to develop and deploy initially. Problems: scaling means scaling everything even if only one part needs it; a bug in one module can crash the whole app; tech stack is locked; deployments are risky big-bang events. Microservices: application split into independent services, each with its own data store, deployed independently. Benefits: independent scaling, independent deployments (update Payments without touching Cart), tech diversity, fault isolation. Challenges: network latency between services, distributed transactions, observability complexity, service discovery. Start with a modular monolith; migrate to microservices when you feel the pain.'},
+    {q:'What monitoring metrics would you track for a production web app?',a:'The RED method (for services): Rate (requests per second), Errors (error rate %), Duration (response time percentiles — p50, p95, p99). The USE method (for infrastructure): Utilization (CPU%, memory%), Saturation (queue depth, disk IOPS waiting), Errors (network errors, disk errors). Key metrics: Application: error rate, latency p99, request rate, 4xx/5xx rates. Infrastructure: EC2 CPU/memory, RDS CPU/connections/disk, Lambda errors/duration/concurrency. Business: conversion rate, active users, revenue. Set alarms: p99 latency > 1s, error rate > 1%, CPU > 80% for 5 min. Use CloudWatch + Prometheus/Grafana for dashboards.'},
+  ],
+  scenario:[
+    {q:'Your EC2 instances are maxing out at 99% CPU. What do you do?',a:'Immediate triage: 1) Check CloudWatch metrics to confirm — is it all instances or one? When did it start? Correlate with deployments. 2) SSH into an instance, run top/htop to identify the process. 3) If one process is rogue — is it a bug? Memory leak? Restart the service if safe. 4) Short-term: manually increase instance count in the ASG desired capacity. 5) Medium-term: Add Auto Scaling policies — Target Tracking policy to maintain 60% CPU. 6) Long-term: Profile the app for performance bottlenecks. Consider caching (ElastiCache) to reduce DB calls. Consider scaling reads to RDS Read Replicas. Consider moving to a larger instance type if it\'s consistently under-provisioned.'},
+    {q:'A developer accidentally deleted an S3 bucket with production data. What do you do?',a:'First, stay calm. Then: 1) Check if S3 Versioning was enabled — if yes, deleted objects are just marked with a delete marker, not truly gone. Remove the delete marker to restore them. 2) Check if S3 Cross-Region Replication was enabled — if so, the replicated bucket still has the data. 3) Check for S3 Lifecycle policies that may have moved objects to Glacier — restore from there. 4) Check CloudTrail for the exact deletion API call — who did it, when, and what exact keys were deleted. 5) If no backups exist — this is a post-mortem event. Document what happened, what data was lost, business impact. 6) Prevention: Enable S3 Versioning + MFA Delete on all production buckets. Use S3 Object Lock for compliance data. Enable replication. Set up bucket policies denying delete without explicit approval. Add SCPs preventing bucket deletion.'},
+    {q:'Your application deployment failed halfway. What steps do you take?',a:'1) Assess the situation: what % of instances got the new version? Are there errors? Is the app serving traffic? 2) Immediate: if CodeDeploy — trigger a rollback in the console or CLI. If ECS blue/green — shift traffic back to the old task set immediately. If Kubernetes — kubectl rollout undo deployment/myapp. 3) CloudWatch Logs: examine deployment logs and application logs to understand the failure cause. Was it a bad health check? Application crash? Config error? 4) Isolate: deploy the failed version to a test environment and reproduce the issue. 5) Fix: address the root cause (bad env var? dependency missing? code bug?). 6) Re-deploy with the fix — use blue/green to ensure safe rollout with instant rollback capability. 7) Post-mortem: add this failure scenario to your deployment checklist and integration tests.'},
+    {q:'How would you design a highly available web application on AWS?',a:'Multi-AZ everything: 1) Network: VPC with public subnets (AZ-a, AZ-b, AZ-c) for ALB, private subnets for EC2, isolated subnets for RDS. 2) Compute: EC2 Auto Scaling Group spanning 3 AZs. ALB distributes traffic with health checks. ASG replaces unhealthy instances automatically. 3) Database: RDS with Multi-AZ enabled (synchronous replication, automatic failover <120s). Add Read Replicas for read scaling. 4) Caching: ElastiCache Redis (Multi-AZ, replication group) to cache frequent queries. 5) CDN: CloudFront for static assets — reduces load and latency. 6) DNS: Route53 with health checks and failover routing. 7) Sessions: Store sessions in ElastiCache (not in-memory) so any EC2 can serve any request. 8) Monitoring: CloudWatch alarms + SNS for alerting. Design for failure: assume any single component can fail and verify the system survives.'},
+    {q:'Your RDS database is slow. How do you troubleshoot and fix it?',a:'1) Diagnose: CloudWatch RDS metrics — CPU, FreeableMemory, DatabaseConnections, ReadLatency, WriteLatency, DiskQueueDepth. High CPU → slow queries. High connections → connection pool exhaustion. 2) Enable Performance Insights (RDS) — shows which SQL queries are consuming the most DB time. Identify the top 5 slowest queries. 3) Enable slow query log (for MySQL). Run EXPLAIN on the slow queries — missing indexes? Table scans? 4) Add indexes on frequently queried columns (be careful — over-indexing slows writes). 5) Check for connection pool settings — use RDS Proxy to pool and reuse connections efficiently. 6) Read-heavy? Add RDS Read Replicas and direct read traffic to replica endpoint. 7) Cache frequently read data in ElastiCache to reduce DB hits. 8) If disk IOPS is the bottleneck — upgrade to io1/io2 EBS volume type. 9) Vertically scale RDS instance class if CPU/memory bound.'},
+    {q:'How would you implement zero-downtime deployments?',a:'Option 1 — Blue/Green: Run two identical environments. Deploy to Green, test it, then switch the ALB target group or Route53 weighted routing from Blue (100%) to Green (100%). Rollback = switch back to Blue. Option 2 — Rolling deployment: Gradually replace instances. ECS rolling updates deploy to one task at a time, maintaining minimum healthy %. ALB health checks ensure traffic only goes to healthy instances. Option 3 — Canary: Send 5% of traffic to new version. Monitor error rates and latency. If metrics look good, gradually increase to 10%, 25%, 50%, 100%. If issues, stop and rollback. Tools: AWS CodeDeploy (Blue/Green for EC2, ECS), Kubernetes rolling updates, ECS service deployment circuit breakers for automatic rollback, ALB weighted target groups for canary.'},
+  ]
+};
+
+const INTERVIEW_TIPS = [
+  'Structure answers with STAR method: Situation, Task, Action, Result',
+  'Draw diagrams when describing architectures — it shows system thinking',
+  'Always mention cost optimization and security in architecture questions',
+  'Know the trade-offs: don\'t just say Lambda is better — explain when EC2 wins',
+  'Mention monitoring/observability in every system design answer',
+  'Reference real AWS service names and configurations, not generics',
+  'Ask clarifying questions before jumping into system design answers',
+  'Be honest about what you don\'t know — explain how you\'d learn it',
+  'Prepare 2-3 projects you\'ve built with AWS to discuss in detail',
+  'Know the basics of pricing — interviewers love cost-conscious engineers',
+];
+
+// ===== RENDER FUNCTIONS =====
+let activeFilter = 'all';
+
+function renderServices(){
+  const grid = document.getElementById('servicesGrid');
+  const search = document.getElementById('serviceSearch').value.toLowerCase();
+  let filtered = SERVICES.filter(s=>{
+    const matchFilter = activeFilter === 'all' || s.category === activeFilter;
+    const matchSearch = !search || s.name.toLowerCase().includes(search) || s.purpose.toLowerCase().includes(search) || s.what.toLowerCase().includes(search);
+    return matchFilter && matchSearch;
+  });
+  document.getElementById('showCount').textContent = `${filtered.length} services`;
+  document.getElementById('noResults').style.display = filtered.length === 0 ? 'block' : 'none';
+  grid.innerHTML = filtered.map(s => `
+    <div class="service-card cat-${s.category}" onclick="toggleCard('card-${s.id}')">
+      <div class="service-card-header">
+        <div style="display:flex;align-items:center;gap:10px;flex:1">
+          <div class="service-icon">${s.icon}</div>
+          <div>
+            <div class="service-name">${s.name}</div>
+            <div class="service-category-tag">${s.category.toUpperCase()}</div>
+          </div>
+        </div>
+      </div>
+      <div class="service-purpose">${s.purpose}</div>
+      <p style="font-size:0.78rem;color:var(--text3);line-height:1.5;margin-bottom:12px">${s.what}</p>
+      <button class="service-expand-btn">
+        <span id="btn-${s.id}">▼ Show Details</span>
+      </button>
+      <div class="service-details" id="card-${s.id}">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="dt">WHEN TO USE</div><div class="dd">${s.whenUse}</div></div>
+          <div class="detail-item"><div class="dt">WHEN NOT TO USE</div><div class="dd">${s.whenNot}</div></div>
+        </div>
+        <div class="detail-full"><div class="dt">REAL-WORLD USE CASE</div><div class="dd">${s.useCase}</div></div>
+        <div class="detail-full"><div class="dt">ADVANTAGES</div><div class="dd"><div class="tag-list">${s.pros.map(p=>`<span class="tag green">${p}</span>`).join('')}</div></div></div>
+        <div class="detail-full"><div class="dt">LIMITATIONS</div><div class="dd"><div class="tag-list">${s.cons.map(c=>`<span class="tag red">${c}</span>`).join('')}</div></div></div>
+        <div class="detail-full"><div class="dt">ALTERNATIVES</div><div class="dd"><div class="tag-list">${s.alts.map(a=>`<span class="tag blue">${a}</span>`).join('')}</div></div></div>
+        <div class="detail-full"><div class="dt">ARCHITECTURE PLACEMENT</div><div class="dd">${s.arch}</div></div>
+        <div class="detail-full"><div class="dt">BEGINNER EXPLANATION</div><div class="dd">${s.beginner}</div></div>
+        <div class="interview-tip"><div class="tip-label">💡 INTERVIEW TIP</div><p>${s.tip}</p></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleCard(id){
+  const el = document.getElementById(id);
+  const sId = id.replace('card-','');
+  const btnEl = document.getElementById('btn-'+sId);
+  el.classList.toggle('open');
+  if(el.classList.contains('open')){
+    btnEl.textContent = '▲ Hide Details';
+  } else {
+    btnEl.textContent = '▼ Show Details';
+  }
+}
+
+function filterServices(){renderServices()}
+function setFilter(cat, el){
+  activeFilter = cat;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderServices();
+}
+
+function renderUseCases(){
+  const btns = document.getElementById('ucBtns');
+  btns.innerHTML = USE_CASES.map((u,i)=>`
+    <button class="uc-btn" onclick="showUseCase(${i},this)">${u.icon} ${u.name}</button>
+  `).join('');
+}
+
+function showUseCase(i, el){
+  document.querySelectorAll('.uc-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const u = USE_CASES[i];
+  const costClass = u.cost==='low'?'cost-low':u.cost==='medium'?'cost-med':'cost-high';
+  const costLabel = u.cost==='low'?'💚 Low Cost':u.cost==='medium'?'💛 Medium Cost':'🔴 High Cost';
+  document.getElementById('ucResult').innerHTML = `
+    <div class="uc-title">${u.icon} ${u.name} Architecture</div>
+    <div class="uc-grid">
+      <div class="uc-item"><h4>☁ Recommended Services</h4><p>${u.services.join(', ')}</p></div>
+      <div class="uc-item"><h4>🧠 Why These Services</h4><p>${u.why}</p></div>
+      <div class="uc-item"><h4>🛡 Security Approach</h4><p>${u.security}</p></div>
+      <div class="uc-item"><h4>📈 Scaling Strategy</h4><p>${u.scaling}</p></div>
+    </div>
+    <div class="uc-flow">
+      <h4>DEPLOYMENT FLOW</h4>
+      <div class="uc-flow-steps">${u.flow.map((s,j)=>`
+        ${j>0?'<span class="uc-arrow">→</span>':''}
+        <span class="uc-step">${s}</span>
+      `).join('')}</div>
+    </div>
+    <div class="uc-meta">
+      <span class="uc-badge ${costClass}">${costLabel}</span>
+    </div>
+  `;
+  document.getElementById('ucResult').classList.add('show');
+}
+
+function renderRoadmap(){
+  const colors = ['#FF9900','#64B5F6','#FF5252','#FFD740','#4DD0E1','#CE93D8','#00E676','#FF9800'];
+  const timeline = document.getElementById('roadmapTimeline');
+  timeline.innerHTML = ROADMAP_PHASES.map((p,i)=>`
+    <div class="roadmap-phase">
+      <div class="phase-spine ph${i}">
+        <div class="phase-dot ph${i}">${i+1}</div>
+        ${i < ROADMAP_PHASES.length-1 ? `<div class="phase-line ph${i}"></div>` : ''}
+      </div>
+      <div class="phase-content" onclick="togglePhase(${i})">
+        <div class="phase-header">
+          <div>
+            <div class="phase-name">${p.name}</div>
+            <div style="font-size:0.78rem;color:var(--text3);margin-top:4px">${p.desc}</div>
+          </div>
+          <div class="phase-meta">
+            <span class="phase-duration">⏱ ${p.duration}</span>
+            <span class="phase-diff ${p.diff}">${p.diff.charAt(0).toUpperCase()+p.diff.slice(1)}</span>
+            <span class="phase-toggle" id="pt-${i}">▼</span>
+          </div>
+        </div>
+        <div class="phase-body" id="pb-${i}">
+          <div class="phase-section">
+            <h4>CONCEPTS</h4>
+            <ul>${p.topics.map(t=>`<li>${t}</li>`).join('')}</ul>
+          </div>
+          <div class="phase-section">
+            <h4>SKILLS YOU GAIN</h4>
+            <ul>${p.skills.map(s=>`<li>${s}</li>`).join('')}</ul>
+          </div>
+          <div class="phase-section">
+            <h4>MINI PROJECTS</h4>
+            <ul>${p.projects.map(pr=>`<li>${pr}</li>`).join('')}</ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function togglePhase(i){
+  const body = document.getElementById(`pb-${i}`);
+  const toggle = document.getElementById(`pt-${i}`);
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+function renderArchitecture(){
+  const grid = document.getElementById('archGrid');
+  grid.innerHTML = ARCH_PATTERNS.map(a=>`
+    <div class="arch-card">
+      <div class="arch-title">🏗 ${a.title}</div>
+      <div class="arch-flow">
+        ${a.nodes.map((n,i)=>`
+          <div class="arch-node">
+            <div class="node-name">${n.name}</div>
+            <div class="node-desc">${n.desc}</div>
+            ${n.badge ? `<span class="node-badge" style="background:${n.badgeColor}22;color:${n.badgeColor};border:1px solid ${n.badgeColor}44">${n.badge}</span>` : ''}
+          </div>
+          ${i < a.nodes.length-1 ? '<div class="arch-arrow"></div>' : ''}
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderPipeline(){
+  const track = document.getElementById('pipelineTrack');
+  track.innerHTML = PIPELINE_STAGES.map((s,i)=>`
+    <div class="pipeline-stage">
+      <div class="stage-connector">
+        <div class="stage-dot s${i}">${s.emoji}</div>
+        ${i < PIPELINE_STAGES.length-1 ? `<div class="stage-line-v" style="--sc2:${['#64B5F6','#FF5252','#4DD0E1','#A5D6A7','#FF9900','#CE93D8','#FF9900'][i+1] || '#FF9900'}"></div>` : ''}
+      </div>
+      <div class="stage-info">
+        <div class="stage-name">${s.name}</div>
+        <div class="stage-desc">${s.desc}</div>
+        <div class="stage-tags">${s.tags.map(t=>`<span class="tag orange">${t}</span>`).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+let activeTab = 'aws';
+function renderInterview(){
+  renderQA(activeTab);
+  document.getElementById('interviewTips').innerHTML = INTERVIEW_TIPS.map(t=>`<li>${t}</li>`).join('');
+}
+function switchTab(tab, el){
+  activeTab = tab;
+  document.querySelectorAll('.itab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderQA(tab);
+}
+function renderQA(tab){
+  const qas = INTERVIEW_QA[tab];
+  const container = document.getElementById('qaContainer');
+  // remove old panels
+  container.querySelectorAll('.interview-panel').forEach(p=>p.remove());
+  const panel = document.createElement('div');
+  panel.className = 'interview-panel active';
+  panel.innerHTML = `<div class="qa-list">${qas.map((qa,i)=>`
+    <div class="qa-item">
+      <div class="qa-q" onclick="toggleQA(this)">
+        <span class="q-num">Q${i+1}</span>
+        <span>${qa.q}</span>
+        <span class="q-toggle">▼</span>
+      </div>
+      <div class="qa-a">${qa.a}</div>
+    </div>
+  `).join('')}</div>`;
+  container.appendChild(panel);
+}
+function toggleQA(el){
+  el.classList.toggle('open');
+  const ans = el.nextElementSibling;
+  ans.classList.toggle('open');
+}
+
+// ===== HERO CHIPS =====
+function renderHeroChips(){
+  const container = document.getElementById('heroChips');
+  const chips = ['EC2','Lambda','S3','ECS','EKS','RDS','DynamoDB','VPC','IAM','CloudWatch','Terraform','Docker','Kubernetes','Jenkins','CodePipeline','CloudFront','Route53','Aurora','API Gateway','CodeBuild','WAF','KMS','Cognito','SQS','SNS','EFS','EBS'];
+  chips.forEach((chip,i)=>{
+    const el = document.createElement('span');
+    const types = ['orange','blue','green'];
+    el.className = `chip ${types[i%3]}`;
+    el.textContent = chip;
+    el.style.left = (5 + Math.random()*88) + '%';
+    el.style.top = (5 + Math.random()*85) + '%';
+    el.style.animationDelay = (Math.random()*5) + 's';
+    el.style.animationDuration = (6 + Math.random()*4) + 's';
+    el.style.opacity = (0.15 + Math.random()*0.25).toString();
+    container.appendChild(el);
+  });
+}
+
+// ===== CANVAS BACKGROUND =====
+function initCanvas(){
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  class Particle {
+    constructor(){this.reset()}
+    reset(){
+      this.x = Math.random()*W;
+      this.y = Math.random()*H;
+      this.vx = (Math.random()-0.5)*0.3;
+      this.vy = (Math.random()-0.5)*0.3;
+      this.r = Math.random()*1.5+0.3;
+      this.a = Math.random()*0.4+0.05;
+      this.color = Math.random()>0.5 ? '255,153,0' : '79,195,247';
+    }
+    update(){
+      this.x += this.vx; this.y += this.vy;
+      if(this.x<0||this.x>W||this.y<0||this.y>H) this.reset();
+    }
+    draw(){
+      ctx.beginPath();
+      ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(${this.color},${this.a})`;
+      ctx.fill();
+    }
+  }
+  for(let i=0;i<80;i++) particles.push(new Particle());
+  let lineParticles = particles.slice(0,40);
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Grid
+    ctx.strokeStyle = 'rgba(255,153,0,0.03)';
+    ctx.lineWidth = 1;
+    for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(let y=0;y<H;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    // Lines between nearby particles
+    for(let i=0;i<lineParticles.length;i++){
+      for(let j=i+1;j<lineParticles.length;j++){
+        const dx=lineParticles[i].x-lineParticles[j].x;
+        const dy=lineParticles[i].y-lineParticles[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<120){
+          ctx.beginPath();
+          ctx.strokeStyle=`rgba(255,153,0,${0.06*(1-dist/120)})`;
+          ctx.lineWidth=0.5;
+          ctx.moveTo(lineParticles[i].x,lineParticles[i].y);
+          ctx.lineTo(lineParticles[j].x,lineParticles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    particles.forEach(p=>{p.update();p.draw()});
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ===== CURSOR =====
+function initCursor(){
+  const cur = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{
+    mx=e.clientX;my=e.clientY;
+    cur.style.left=(mx-5)+'px';cur.style.top=(my-5)+'px';
+  });
+  function animRing(){
+    rx+=(mx-rx-18)*0.12;
+    ry+=(my-ry-18)*0.12;
+    ring.style.left=rx+'px';ring.style.top=ry+'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+  document.querySelectorAll('a,button,.service-card,.filter-tab,.uc-btn,.qa-q,.phase-content').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{
+      cur.style.transform='scale(2)';
+      ring.style.width='52px';ring.style.height='52px';
+      ring.style.borderColor='rgba(255,153,0,0.8)';
+    });
+    el.addEventListener('mouseleave',()=>{
+      cur.style.transform='scale(1)';
+      ring.style.width='36px';ring.style.height='36px';
+      ring.style.borderColor='rgba(255,153,0,0.5)';
+    });
+  });
+}
+
+// ===== NAV & SCROLL =====
+window.addEventListener('scroll',()=>{
+  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+function toggleMenu(){
+  const m = document.getElementById('mobileMenu');
+  m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+}
+
+// ===== INTERSECTION OBSERVER ANIMATIONS =====
+function initAnimations(){
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.style.opacity='1';
+        e.target.style.transform='translateY(0)';
+      }
+    });
+  },{threshold:0.08});
+  document.querySelectorAll('.service-card,.arch-card,.uc-item,.phase-content,.stage-info').forEach(el=>{
+    el.style.opacity='0';
+    el.style.transform='translateY(20px)';
+    el.style.transition='opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+}
+
+// ===== INIT ALL =====
+function init(){
+  renderServices();
+  renderUseCases();
+  renderRoadmap();
+  renderArchitecture();
+  renderPipeline();
+  renderInterview();
+  renderHeroChips();
+  initCanvas();
+  initCursor();
+  setTimeout(initAnimations, 100);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
