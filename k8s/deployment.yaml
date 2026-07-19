@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: aws-devops-handbook
-          image: 747848915242.dkr.ecr.us-east-1.amazonaws.com/aws-devops-handbook:d8b64ca
+          image: 747848915242.dkr.ecr.us-east-1.amazonaws.com/aws-devops-handbook:f4dd827
           imagePullPolicy: Always
 
           ports:
