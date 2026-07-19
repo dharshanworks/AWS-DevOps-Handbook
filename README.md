@@ -1,6 +1,6 @@
 # 🚀 AWS DevOps Handbook
 
-::: {align="center"}
+
 # AWS DevOps Handbook
 
 ### Enterprise-Grade CI/CD • GitOps • Kubernetes • Observability on AWS
